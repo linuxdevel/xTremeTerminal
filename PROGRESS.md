@@ -8,9 +8,9 @@
 
 ---
 
-## Current Status: PHASE 3 COMPLETE
+## Current Status: PHASE 4 COMPLETE
 
-**Next action to take:** Begin Phase 4 (Syntax Highlighting) implementation.
+**Next action to take:** Begin Phase 5 (Tab Management) implementation.
 
 ---
 
@@ -22,7 +22,7 @@
 | Phase 1 | DONE | Project scaffolding & basic shell | 2026-02-11 | 2026-02-11 |
 | Phase 2 | DONE | File tree browser | 2026-02-11 | 2026-02-11 |
 | Phase 3 | DONE | Text editor core | 2026-02-11 | 2026-02-11 |
-| Phase 4 | NOT STARTED | Syntax highlighting | - | - |
+| Phase 4 | DONE | Syntax highlighting | 2026-02-11 | 2026-02-11 |
 | Phase 5 | NOT STARTED | Tab management | - | - |
 | Phase 6 | NOT STARTED | Advanced editor (undo/redo, clipboard, search) | - | - |
 | Phase 7 | NOT STARTED | File operations (create/rename/delete) | - | - |
@@ -64,7 +64,7 @@
 |------|--------|-------|---------------|---------------|
 | `src/index.ts` | DONE | 1 | NO | - |
 | `src/app.ts` | DONE | 1,2,3 | NO | - |
-| `src/theme.ts` | DONE | 1 | YES | YES |
+| `src/theme.ts` | DONE | 1,4 | YES | YES |
 | `src/keybindings.ts` | DONE | 1 | YES | YES |
 
 ### Components
@@ -73,7 +73,7 @@
 |------|--------|-------|---------------|---------------|
 | `src/components/layout.ts` | DONE | 1,2,3 | YES | YES |
 | `src/components/file-tree.ts` | DONE | 2 | YES | YES |
-| `src/components/editor.ts` | DONE | 3 | YES | YES |
+| `src/components/editor.ts` | DONE | 3,4 | YES | YES |
 | `src/components/tab-bar.ts` | NOT STARTED | 5 | NO | - |
 | `src/components/status-bar.ts` | NOT STARTED | 8 | NO | - |
 | `src/components/search-dialog.ts` | NOT STARTED | 6 | NO | - |
@@ -217,6 +217,22 @@
   - Discovered OpenTUI content change events are deferred (fire after microtask); implemented suppression guard for file loading
   - All 178 tests passing
 - **Next steps:** Begin Phase 4 (Syntax Highlighting)
+
+### Session 5 - 2026-02-11
+- **Goal:** Complete Phase 4 (Syntax Highlighting)
+- **Completed:**
+  - Expanded src/theme.ts with comprehensive SYNTAX_STYLE export (added keyword.import, keyword.return, boolean, constructor, variable.member, string.escape, function.call, markup.heading/bold/italic/link/raw/list, and more token types)
+  - Integrated Tree-sitter syntax highlighting into src/components/editor.ts:
+    - Set syntaxStyle on TextareaRenderable for color resolution
+    - Added getTreeSitterClient() integration for parsing
+    - Applied highlights via addHighlightByCharRange() after Tree-sitter parsing
+    - Added debounced re-highlighting on content changes (150ms)
+    - Added language-to-filetype mapping for Tree-sitter compatibility
+    - Graceful fallback when Tree-sitter parser unavailable for a language
+  - Added 16 new tests to tests/unit/theme.test.ts for SYNTAX_STYLE validation
+  - Discovered OpenTUI bundles Tree-sitter WASM parsers for javascript, typescript, markdown, markdown_inline, and zig
+  - All 194 tests passing
+- **Next steps:** Begin Phase 5 (Tab Management)
 
 ---
 

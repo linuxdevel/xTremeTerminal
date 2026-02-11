@@ -1,11 +1,12 @@
 // src/components/editor.ts — Text editor component using TextareaRenderable
 
-import type { CliRenderer, KeyEvent } from "@opentui/core";
+import type { CliRenderer, KeyEvent, Highlight } from "@opentui/core";
 import {
   BoxRenderable,
   TextRenderable,
   TextareaRenderable,
   LineNumberRenderable,
+  getTreeSitterClient,
 } from "@opentui/core";
 
 import { fileService } from "../services/file-service.ts";
@@ -20,7 +21,46 @@ import {
   BG_SELECTION,
   LINE_NUMBER_MIN_WIDTH,
   LINE_NUMBER_PADDING_RIGHT,
+  SYNTAX_STYLE,
 } from "../theme.ts";
+
+// ── Language to Tree-sitter filetype mapping ────────────────────────
+// Our language-detect.ts returns language IDs, but Tree-sitter's highlightOnce()
+// expects "filetype" strings. Only a subset of languages have built-in parsers.
+
+const LANGUAGE_TO_FILETYPE: Record<string, string> = {
+  "typescript": "typescript",
+  "tsx": "typescriptreact",
+  "javascript": "javascript",
+  "jsx": "javascriptreact",
+  "markdown": "markdown",
+  "zig": "zig",
+  "json": "json",
+  "html": "html",
+  "css": "css",
+  "python": "python",
+  "ruby": "ruby",
+  "go": "go",
+  "rust": "rust",
+  "c": "c",
+  "cpp": "cpp",
+  "java": "java",
+  "bash": "shell",
+  "c_sharp": "csharp",
+  "kotlin": "kotlin",
+  "swift": "swift",
+  "php": "php",
+  "sql": "sql",
+  "lua": "lua",
+  "elixir": "elixir",
+  "erlang": "erlang",
+  "yaml": "yaml",
+  "toml": "toml",
+  "scala": "scala",
+};
+
+/** Debounce delay for re-highlighting on content change (ms) */
+const HIGHLIGHT_DEBOUNCE_MS = 150;
 
 // ── Types ──────────────────────────────────────────────────────────
 
@@ -48,6 +88,10 @@ export class Editor {
   private _cursorColumn = 0;
   private _showingWelcome = true;
   private _suppressModifiedEvent = false;
+
+  // Syntax highlighting state
+  private _highlightTimer: ReturnType<typeof setTimeout> | null = null;
+  private _highlightingEnabled = false;
 
   // ── Event Callbacks ─────────────────────────────────────────────
 
@@ -82,6 +126,7 @@ export class Editor {
       selectionBg: BG_SELECTION,
       wrapMode: "none",
       showCursor: true,
+      syntaxStyle: SYNTAX_STYLE,
     });
 
     // Create line number gutter
@@ -98,6 +143,7 @@ export class Editor {
     this.textarea.onContentChange = () => {
       if (!this._showingWelcome && !this._suppressModifiedEvent) {
         this.setModified(true);
+        this.scheduleHighlight();
       }
     };
 
@@ -202,6 +248,9 @@ export class Editor {
     this._isModified = false;
     this._suppressModifiedEvent = false;
 
+    // Apply syntax highlighting for the loaded file
+    await this.applyHighlights();
+
     return true;
   }
 
@@ -228,6 +277,8 @@ export class Editor {
     this.hideWelcome();
     this._filePath = null;
     this._language = null;
+    this._highlightingEnabled = false;
+    this.textarea.clearAllHighlights();
     this.textarea.setText("");
     this._isModified = false;
     await Promise.resolve();
@@ -253,6 +304,10 @@ export class Editor {
 
   /** Clean up */
   destroy(): void {
+    if (this._highlightTimer) {
+      clearTimeout(this._highlightTimer);
+      this._highlightTimer = null;
+    }
     this.container.destroyRecursively();
   }
 
@@ -272,6 +327,75 @@ export class Editor {
     if (this._isModified !== modified) {
       this._isModified = modified;
       this.onModifiedChange?.(modified);
+    }
+  }
+
+  /** Get the Tree-sitter filetype for the current language */
+  private getFiletype(): string | null {
+    if (!this._language) return null;
+    return LANGUAGE_TO_FILETYPE[this._language] ?? null;
+  }
+
+  /** Schedule a debounced re-highlight after content changes */
+  private scheduleHighlight(): void {
+    if (!this._highlightingEnabled) return;
+
+    if (this._highlightTimer) {
+      clearTimeout(this._highlightTimer);
+    }
+
+    this._highlightTimer = setTimeout(() => {
+      this._highlightTimer = null;
+      this.applyHighlights().catch(() => {
+        // Silently ignore highlight errors during editing
+      });
+    }, HIGHLIGHT_DEBOUNCE_MS);
+  }
+
+  /** Apply syntax highlights to the textarea using Tree-sitter */
+  private async applyHighlights(): Promise<void> {
+    const filetype = this.getFiletype();
+    if (!filetype) {
+      this._highlightingEnabled = false;
+      this.textarea.clearAllHighlights();
+      return;
+    }
+
+    const content = this.textarea.plainText;
+    if (!content) {
+      this.textarea.clearAllHighlights();
+      return;
+    }
+
+    try {
+      const client = getTreeSitterClient();
+      const result = await client.highlightOnce(content, filetype);
+
+      if (!result.highlights || result.highlights.length === 0) {
+        this._highlightingEnabled = false;
+        return;
+      }
+
+      // Clear existing highlights before applying new ones
+      this.textarea.clearAllHighlights();
+
+      // Apply each highlight from Tree-sitter
+      for (const hl of result.highlights) {
+        const [start, end, group] = hl;
+        const styleId = SYNTAX_STYLE.resolveStyleId(group);
+        if (styleId !== null) {
+          this.textarea.addHighlightByCharRange({
+            start,
+            end,
+            styleId,
+          } as Highlight);
+        }
+      }
+
+      this._highlightingEnabled = true;
+    } catch {
+      // Tree-sitter not available or parsing failed — disable highlighting
+      this._highlightingEnabled = false;
     }
   }
 

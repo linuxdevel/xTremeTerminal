@@ -32,6 +32,7 @@ import {
   ALL_COLORS,
   isValidHexColor,
   createSyntaxStyle,
+  SYNTAX_STYLE,
 } from "../../src/theme.ts";
 
 describe("Theme", () => {
@@ -140,6 +141,109 @@ describe("Theme", () => {
       const comment = style.getStyle("comment");
       expect(comment).toBeDefined();
       expect(comment?.italic).toBe(true);
+    });
+  });
+
+  describe("SYNTAX_STYLE export", () => {
+    test("is a pre-built SyntaxStyle instance", () => {
+      expect(SYNTAX_STYLE).toBeDefined();
+      expect(typeof SYNTAX_STYLE.getStyleCount).toBe("function");
+      expect(SYNTAX_STYLE.getStyleCount()).toBeGreaterThan(0);
+    });
+
+    test("has all core token types", () => {
+      const coreTokens = [
+        "keyword", "string", "comment", "number", "function",
+        "type", "variable", "property", "operator", "punctuation",
+        "tag", "attribute", "default",
+      ];
+      for (const token of coreTokens) {
+        const style = SYNTAX_STYLE.getStyle(token);
+        expect(style).toBeDefined();
+      }
+    });
+
+    test("has extended keyword styles", () => {
+      expect(SYNTAX_STYLE.getStyle("keyword.control")).toBeDefined();
+      expect(SYNTAX_STYLE.getStyle("keyword.import")).toBeDefined();
+      expect(SYNTAX_STYLE.getStyle("keyword.operator")).toBeDefined();
+      expect(SYNTAX_STYLE.getStyle("keyword.return")).toBeDefined();
+    });
+
+    test("has extended function styles", () => {
+      expect(SYNTAX_STYLE.getStyle("function.call")).toBeDefined();
+      expect(SYNTAX_STYLE.getStyle("function.method")).toBeDefined();
+      expect(SYNTAX_STYLE.getStyle("function.builtin")).toBeDefined();
+    });
+
+    test("has extended type styles", () => {
+      expect(SYNTAX_STYLE.getStyle("type.builtin")).toBeDefined();
+      expect(SYNTAX_STYLE.getStyle("constructor")).toBeDefined();
+    });
+
+    test("has extended variable styles", () => {
+      expect(SYNTAX_STYLE.getStyle("variable.builtin")).toBeDefined();
+      expect(SYNTAX_STYLE.getStyle("variable.parameter")).toBeDefined();
+      expect(SYNTAX_STYLE.getStyle("variable.member")).toBeDefined();
+    });
+
+    test("has markup styles for markdown", () => {
+      expect(SYNTAX_STYLE.getStyle("markup.heading")).toBeDefined();
+      expect(SYNTAX_STYLE.getStyle("markup.bold")).toBeDefined();
+      expect(SYNTAX_STYLE.getStyle("markup.italic")).toBeDefined();
+      expect(SYNTAX_STYLE.getStyle("markup.link")).toBeDefined();
+      expect(SYNTAX_STYLE.getStyle("markup.raw")).toBeDefined();
+      expect(SYNTAX_STYLE.getStyle("markup.list")).toBeDefined();
+    });
+
+    test("has string sub-styles", () => {
+      expect(SYNTAX_STYLE.getStyle("string.special")).toBeDefined();
+      expect(SYNTAX_STYLE.getStyle("string.escape")).toBeDefined();
+    });
+
+    test("has comment sub-styles", () => {
+      expect(SYNTAX_STYLE.getStyle("comment.line")).toBeDefined();
+      expect(SYNTAX_STYLE.getStyle("comment.block")).toBeDefined();
+    });
+
+    test("resolveStyleId returns valid IDs for known tokens", () => {
+      const id = SYNTAX_STYLE.resolveStyleId("keyword");
+      expect(id).not.toBeNull();
+      expect(typeof id).toBe("number");
+    });
+
+    test("resolveStyleId returns null for unknown tokens", () => {
+      const id = SYNTAX_STYLE.resolveStyleId("nonexistent.token.type");
+      expect(id).toBeNull();
+    });
+
+    test("keyword styles use correct color", () => {
+      const keyword = SYNTAX_STYLE.getStyle("keyword");
+      expect(keyword).toBeDefined();
+      expect(keyword?.bold).toBe(true);
+    });
+
+    test("comment styles are italic", () => {
+      const styles = ["comment", "comment.line", "comment.block"];
+      for (const name of styles) {
+        const style = SYNTAX_STYLE.getStyle(name);
+        expect(style?.italic).toBe(true);
+      }
+    });
+
+    test("markup.heading is bold", () => {
+      const heading = SYNTAX_STYLE.getStyle("markup.heading");
+      expect(heading?.bold).toBe(true);
+    });
+
+    test("markup.link is underlined", () => {
+      const link = SYNTAX_STYLE.getStyle("markup.link");
+      expect(link?.underline).toBe(true);
+    });
+
+    test("variable.builtin is italic", () => {
+      const varBuiltin = SYNTAX_STYLE.getStyle("variable.builtin");
+      expect(varBuiltin?.italic).toBe(true);
     });
   });
 });

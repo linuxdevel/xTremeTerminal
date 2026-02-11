@@ -80,31 +80,75 @@ export const ALL_COLORS = [
 
 export function createSyntaxStyle(): SyntaxStyle {
   return SyntaxStyle.fromStyles({
+    // Keywords
     "keyword": { fg: RGBA.fromHex(SYNTAX_KEYWORD), bold: true },
     "keyword.control": { fg: RGBA.fromHex(SYNTAX_KEYWORD), bold: true },
+    "keyword.import": { fg: RGBA.fromHex(SYNTAX_FUNCTION), bold: true },
     "keyword.operator": { fg: RGBA.fromHex(SYNTAX_OPERATOR) },
+    "keyword.return": { fg: RGBA.fromHex(SYNTAX_KEYWORD), bold: true },
+
+    // Strings
     "string": { fg: RGBA.fromHex(SYNTAX_STRING) },
-    "string.special": { fg: RGBA.fromHex(SYNTAX_STRING) },
+    "string.special": { fg: RGBA.fromHex(SYNTAX_STRING), italic: true },
+    "string.escape": { fg: RGBA.fromHex(SYNTAX_NUMBER) },
+
+    // Comments
     "comment": { fg: RGBA.fromHex(SYNTAX_COMMENT), italic: true },
     "comment.line": { fg: RGBA.fromHex(SYNTAX_COMMENT), italic: true },
     "comment.block": { fg: RGBA.fromHex(SYNTAX_COMMENT), italic: true },
+
+    // Numbers & constants
     "number": { fg: RGBA.fromHex(SYNTAX_NUMBER) },
+    "boolean": { fg: RGBA.fromHex(SYNTAX_NUMBER) },
     "constant": { fg: RGBA.fromHex(SYNTAX_NUMBER) },
     "constant.builtin": { fg: RGBA.fromHex(SYNTAX_NUMBER) },
+
+    // Functions
     "function": { fg: RGBA.fromHex(SYNTAX_FUNCTION) },
+    "function.call": { fg: RGBA.fromHex(SYNTAX_FUNCTION) },
     "function.method": { fg: RGBA.fromHex(SYNTAX_FUNCTION) },
     "function.builtin": { fg: RGBA.fromHex(SYNTAX_FUNCTION) },
+
+    // Types
     "type": { fg: RGBA.fromHex(SYNTAX_TYPE) },
     "type.builtin": { fg: RGBA.fromHex(SYNTAX_TYPE) },
+    "constructor": { fg: RGBA.fromHex(SYNTAX_TYPE) },
+
+    // Variables
     "variable": { fg: RGBA.fromHex(SYNTAX_VARIABLE) },
     "variable.builtin": { fg: RGBA.fromHex(SYNTAX_VARIABLE), italic: true },
     "variable.parameter": { fg: RGBA.fromHex(SYNTAX_VARIABLE) },
+    "variable.member": { fg: RGBA.fromHex(SYNTAX_PROPERTY) },
+
+    // Properties
     "property": { fg: RGBA.fromHex(SYNTAX_PROPERTY) },
+
+    // Operators & punctuation
     "operator": { fg: RGBA.fromHex(SYNTAX_OPERATOR) },
     "punctuation": { fg: RGBA.fromHex(FG_PRIMARY) },
     "punctuation.bracket": { fg: RGBA.fromHex(FG_PRIMARY) },
     "punctuation.delimiter": { fg: RGBA.fromHex(FG_PRIMARY) },
+
+    // Tags (HTML/JSX)
     "tag": { fg: RGBA.fromHex(SYNTAX_TAG) },
+    "tag.attribute": { fg: RGBA.fromHex(SYNTAX_ATTRIBUTE) },
     "attribute": { fg: RGBA.fromHex(SYNTAX_ATTRIBUTE) },
+
+    // Markup (Markdown)
+    "markup.heading": { fg: RGBA.fromHex(SYNTAX_FUNCTION), bold: true },
+    "markup.bold": { fg: RGBA.fromHex(SYNTAX_VARIABLE), bold: true },
+    "markup.italic": { fg: RGBA.fromHex(SYNTAX_VARIABLE), italic: true },
+    "markup.link": { fg: RGBA.fromHex(SYNTAX_FUNCTION), underline: true },
+    "markup.raw": { fg: RGBA.fromHex(SYNTAX_STRING) },
+    "markup.raw.block": { fg: RGBA.fromHex(SYNTAX_STRING) },
+    "markup.list": { fg: RGBA.fromHex(SYNTAX_TAG) },
+
+    // Default fallback
+    "default": { fg: RGBA.fromHex(FG_PRIMARY) },
   });
 }
+
+// ── Pre-built Syntax Style Instance ─────────────────────────────────
+
+/** Pre-built SyntaxStyle instance for use throughout the application */
+export const SYNTAX_STYLE = createSyntaxStyle();
