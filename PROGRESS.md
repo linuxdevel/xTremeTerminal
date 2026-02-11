@@ -8,7 +8,7 @@
 
 ---
 
-## Current Status: BUG FIXES COMPLETE (v1.0.0f)
+## Current Status: BUG FIXES COMPLETE (v1.0.0g)
 
 **Next action to take:** Ready for release. All 438 tests passing.
 
@@ -343,10 +343,21 @@
   - Made keybinding matcher case-insensitive (fixes Ctrl+Shift+H in Windows Terminal sending uppercase H)
   - Neutralized conflicting Emacs keybindings (Ctrl+E/F/B/W) that interfered with app shortcuts
   - Investigated Ctrl+C/V (code is correct; issue is terminal-level interception in Windows Terminal)
-  - Investigated Ln/Col status bar (code is correct; cursor change callback fires properly)
-  - Added 8 new tests (Tab, PageUp/PageDown, case-insensitive keybinding matching)
+   - Investigated Ln/Col status bar (code is correct; cursor change callback fires properly)
+   - Added 8 new tests (Tab, PageUp/PageDown, case-insensitive keybinding matching)
+   - All 438 tests passing
+   - Tagged as v1.0.0f
+- **Next steps:** Release ready
+
+### Session 13 - 2026-02-11
+- **Goal:** Fix Ln/Col status bar not updating on Arrow Up/Down
+- **Completed:**
+  - Root-caused the issue to an OpenTUI asymmetry: left/right movement uses `editBuffer.moveCursorLeft/Right()` which emits `eb_cursor-changed` via native FFI, but up/down movement uses `editorView.moveUpVisual/moveDownVisual()` which operates on a different native object (EditorView) and does NOT emit `eb_cursor-changed`
+  - As a result, the `onCursorChange` callback fires for left/right but never for up/down
+  - Fix: Added `syncCursorPosition()` private method to Editor that synchronously reads `editBuffer.getCursorPosition()` and updates `_cursorLine`/`_cursorColumn` + fires `onCursorChange`
+  - Called `syncCursorPosition()` after every successful keypress: Tab, PageUp, PageDown, and the textarea.handleKeyPress() fallthrough
   - All 438 tests passing
-  - Tagged as v1.0.0f
+  - Tagged as v1.0.0g
 - **Next steps:** Release ready
 
 ---

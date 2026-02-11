@@ -325,6 +325,7 @@ export class Editor {
     // Tab inserts 4 spaces (OpenTUI ignores charCode < 32 by default)
     if (event.name === "tab" && !event.ctrl && !event.meta && !event.shift) {
       this.textarea.insertText("    ");
+      this.syncCursorPosition();
       return true;
     }
 
@@ -335,6 +336,7 @@ export class Editor {
       for (let i = 0; i < pageSize; i++) {
         this.textarea.moveCursorUp({ select: event.shift });
       }
+      this.syncCursorPosition();
       return true;
     }
 
@@ -345,6 +347,7 @@ export class Editor {
       for (let i = 0; i < pageSize; i++) {
         this.textarea.moveCursorDown({ select: event.shift });
       }
+      this.syncCursorPosition();
       return true;
     }
 
@@ -400,7 +403,14 @@ export class Editor {
     }
 
     // The TextareaRenderable handles its own key events
-    return this.textarea.handleKeyPress(event);
+    const handled = this.textarea.handleKeyPress(event);
+    if (handled) {
+      // Sync cursor position immediately — OpenTUI's onCursorChange callback
+      // does not fire for up/down movement (editorView.moveUpVisual/moveDownVisual
+      // does not emit "cursor-changed" unlike editBuffer.moveCursorLeft/Right).
+      this.syncCursorPosition();
+    }
+    return handled;
   }
 
   /** Focus the editor (show cursor, accept input) */
@@ -589,6 +599,17 @@ export class Editor {
   }
 
   // ── Internal ────────────────────────────────────────────────────
+
+  /** Synchronously read cursor position from the textarea's editBuffer.
+   *  Works around an OpenTUI quirk where editorView.moveUpVisual/moveDownVisual
+   *  do not emit the "cursor-changed" event (unlike editBuffer.moveCursorLeft/Right),
+   *  so the onCursorChange callback never fires for arrow-up/down movement. */
+  private syncCursorPosition(): void {
+    const cursor = this.textarea.editBuffer.getCursorPosition();
+    this._cursorLine = cursor.row;
+    this._cursorColumn = cursor.col;
+    this.onCursorChange?.(this._cursorLine, this._cursorColumn);
+  }
 
   private setModified(modified: boolean): void {
     if (this._isModified !== modified) {
