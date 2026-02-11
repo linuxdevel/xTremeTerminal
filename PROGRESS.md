@@ -8,9 +8,9 @@
 
 ---
 
-## Current Status: PLANNING PHASE
+## Current Status: PHASE 1 COMPLETE
 
-**Next action to take:** Install prerequisites (Bun, Zig), then begin Phase 1 implementation.
+**Next action to take:** Begin Phase 2 (File Tree Browser) implementation.
 
 ---
 
@@ -18,8 +18,8 @@
 
 | Phase | Status | Description | Started | Completed |
 |-------|--------|-------------|---------|-----------|
-| Phase 0 | NOT STARTED | Prerequisites (Bun, Zig installation) | - | - |
-| Phase 1 | NOT STARTED | Project scaffolding & basic shell | - | - |
+| Phase 0 | DONE | Prerequisites (Bun, Zig installation) | 2026-02-11 | 2026-02-11 |
+| Phase 1 | DONE | Project scaffolding & basic shell | 2026-02-11 | 2026-02-11 |
 | Phase 2 | NOT STARTED | File tree browser | - | - |
 | Phase 3 | NOT STARTED | Text editor core | - | - |
 | Phase 4 | NOT STARTED | Syntax highlighting | - | - |
@@ -62,16 +62,16 @@
 
 | File | Status | Phase | Tests Written | Tests Passing |
 |------|--------|-------|---------------|---------------|
-| `src/index.ts` | NOT STARTED | 1 | NO | - |
-| `src/app.ts` | NOT STARTED | 1 | NO | - |
-| `src/theme.ts` | NOT STARTED | 1 | NO | - |
-| `src/keybindings.ts` | NOT STARTED | 1 | NO | - |
+| `src/index.ts` | DONE | 1 | NO | - |
+| `src/app.ts` | DONE | 1 | NO | - |
+| `src/theme.ts` | DONE | 1 | YES | YES |
+| `src/keybindings.ts` | DONE | 1 | YES | YES |
 
 ### Components
 
 | File | Status | Phase | Tests Written | Tests Passing |
 |------|--------|-------|---------------|---------------|
-| `src/components/layout.ts` | NOT STARTED | 1 | NO | - |
+| `src/components/layout.ts` | DONE | 1 | YES | YES |
 | `src/components/file-tree.ts` | NOT STARTED | 2 | NO | - |
 | `src/components/editor.ts` | NOT STARTED | 3 | NO | - |
 | `src/components/tab-bar.ts` | NOT STARTED | 5 | NO | - |
@@ -104,8 +104,8 @@
 
 | File | Status |
 |------|--------|
-| `tests/helpers/setup.ts` | NOT STARTED |
-| `tests/helpers/key-simulator.ts` | NOT STARTED |
+| `tests/helpers/setup.ts` | DONE |
+| `tests/helpers/key-simulator.ts` | DONE |
 
 ### Unit Tests
 
@@ -117,8 +117,8 @@
 | `tests/unit/clipboard.test.ts` | NOT STARTED | - |
 | `tests/unit/language-detect.test.ts` | NOT STARTED | - |
 | `tests/unit/file-icons.test.ts` | NOT STARTED | - |
-| `tests/unit/theme.test.ts` | NOT STARTED | - |
-| `tests/unit/keybindings.test.ts` | NOT STARTED | - |
+| `tests/unit/theme.test.ts` | DONE | YES |
+| `tests/unit/keybindings.test.ts` | DONE | YES |
 
 ### Component Tests
 
@@ -130,7 +130,7 @@
 | `tests/component/status-bar.test.ts` | NOT STARTED | - |
 | `tests/component/search-dialog.test.ts` | NOT STARTED | - |
 | `tests/component/confirm-dialog.test.ts` | NOT STARTED | - |
-| `tests/component/layout.test.ts` | NOT STARTED | - |
+| `tests/component/layout.test.ts` | DONE | YES |
 
 ### Integration Tests
 
@@ -151,8 +151,8 @@
 | Requirement | Status | Version |
 |-------------|--------|---------|
 | OS | Ubuntu 25.10 | OK |
-| Bun | NOT INSTALLED | - |
-| Zig | NOT INSTALLED | - |
+| Bun | INSTALLED | 1.3.9 (baseline) |
+| Zig | INSTALLED | 0.13.0 |
 | Git | INSTALLED | OK |
 | curl | INSTALLED | OK |
 
@@ -170,6 +170,26 @@
   - Created all 10 phase plan files (plans/phase-0 through phase-9)
   - Created PROGRESS.md for session continuity
 - **Next steps:** Begin Phase 0 (install Bun and Zig), then Phase 1
+
+### Session 2 - 2026-02-11
+- **Goal:** Complete Phase 0 (prerequisites) and Phase 1 (scaffolding)
+- **Completed:**
+  - Installed Bun 1.3.9 (baseline build, no AVX2 required for QEMU VM)
+  - Installed Zig 0.13.0 to ~/.local/
+  - Made initial git commit with all planning/docs files
+  - Initialized Bun project, installed @opentui/core v0.1.79
+  - Created tsconfig.json with strict mode
+  - Created src/theme.ts (Tokyo Night palette, SyntaxStyle factory, UI constants)
+  - Created src/keybindings.ts (22 shortcuts, matcher function, duplicate detection)
+  - Created src/components/layout.ts (VS Code-style flexbox layout)
+  - Created src/app.ts (orchestrator with keyboard/resize handling)
+  - Created src/index.ts (entry point)
+  - Created tests/helpers/setup.ts and tests/helpers/key-simulator.ts
+  - Created tests/unit/theme.test.ts (20 tests)
+  - Created tests/unit/keybindings.test.ts (17 tests)
+  - Created tests/component/layout.test.ts (10 tests)
+  - All 47 tests passing
+- **Next steps:** Begin Phase 2 (File Tree Browser)
 
 ---
 

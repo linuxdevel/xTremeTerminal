@@ -1,0 +1,24 @@
+{
+  "name": "xterm-editor",
+  "version": "0.1.0",
+  "description": "Terminal-based text editor and file browser built with OpenTUI",
+  "module": "src/index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "bun run src/index.ts",
+    "test": "bun test",
+    "test:unit": "bun test tests/unit",
+    "test:component": "bun test tests/component",
+    "test:integration": "bun test tests/integration"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@opentui/core": "^0.1.79"
+  }
+}
