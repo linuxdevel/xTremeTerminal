@@ -8,8 +8,10 @@ import { FileTree } from "./components/file-tree.ts";
 import { Editor } from "./components/editor.ts";
 import { TabBar } from "./components/tab-bar.ts";
 import { SearchDialog } from "./components/search-dialog.ts";
+import { ConfirmDialog } from "./components/confirm-dialog.ts";
 import { TabManager } from "./services/tab-manager.ts";
 import type { TabState } from "./services/tab-manager.ts";
+import type { FileEntry } from "./services/file-service.ts";
 import {
   matchesBinding,
   KB_TOGGLE_SIDEBAR,
@@ -35,7 +37,7 @@ export interface AppOptions {
   rootDir?: string;
 }
 
-type FocusTarget = "tree" | "editor" | "search";
+type FocusTarget = "tree" | "editor" | "search" | "confirm";
 
 export class App {
   private renderer!: CliRenderer;
@@ -45,6 +47,7 @@ export class App {
   private tabBar!: TabBar;
   private tabManager!: TabManager;
   private searchDialog!: SearchDialog;
+  private confirmDialog!: ConfirmDialog;
   private _isRunning = false;
   private _focus: FocusTarget = "tree";
   private _previousFocus: FocusTarget = "editor";
@@ -87,6 +90,10 @@ export class App {
     this.searchDialog = new SearchDialog(this.renderer);
     this.layout.root.add(this.searchDialog.renderable);
 
+    // Create confirm dialog (overlay, added to root)
+    this.confirmDialog = new ConfirmDialog(this.renderer);
+    this.layout.root.add(this.confirmDialog.renderable);
+
     // Wire up tab manager events
     this.tabManager.onTabChange = (tab: TabState) => {
       this.switchToTab(tab);
@@ -99,6 +106,27 @@ export class App {
     // Wire up file tree events
     this.fileTree.onFileSelect = (filePath: string) => {
       this.openFile(filePath);
+    };
+
+    // Wire up file tree file operation events
+    this.fileTree.onCreateFile = (filePath: string) => {
+      this.createFileAtPath(filePath);
+    };
+
+    this.fileTree.onCreateDirectory = (dirPath: string) => {
+      this.createDirectoryAtPath(dirPath);
+    };
+
+    this.fileTree.onRename = (entry) => {
+      const newName = this.fileTree.pendingRenameName;
+      this.fileTree.clearPendingRenameName();
+      if (newName) {
+        this.renameEntry(entry.path, newName);
+      }
+    };
+
+    this.fileTree.onDelete = (entry) => {
+      this.confirmDelete(entry);
     };
 
     // Wire up editor events
@@ -245,6 +273,14 @@ export class App {
   }
 
   private handleKeyPress(event: KeyEvent): void {
+    // If confirm dialog is visible, give it highest priority
+    if (this.confirmDialog.isVisible) {
+      if (this.confirmDialog.handleKeyPress(event)) {
+        event.preventDefault();
+      }
+      return;
+    }
+
     // If search dialog is visible, give it first priority
     if (this.searchDialog.isVisible) {
       // Escape closes dialog (handled by search dialog)
@@ -432,6 +468,113 @@ export class App {
     this.updateStatusBar();
   }
 
+  // ── File Operations ─────────────────────────────────────────────
+
+  /** Create a new file at the given path */
+  private async createFileAtPath(filePath: string): Promise<void> {
+    try {
+      const exists = await fileService.exists(filePath);
+      if (exists) {
+        this.layout.setStatusText(` File already exists: ${filePath.split("/").pop()}`);
+        return;
+      }
+      await fileService.createFile(filePath);
+      await this.fileTree.load();
+      // Open the new file in a tab
+      await this.openFile(filePath);
+      this.layout.setStatusText(` Created: ${filePath.split("/").pop()}`);
+    } catch {
+      this.layout.setStatusText(` Failed to create file`);
+    }
+  }
+
+  /** Create a new directory at the given path */
+  private async createDirectoryAtPath(dirPath: string): Promise<void> {
+    try {
+      const exists = await fileService.exists(dirPath);
+      if (exists) {
+        this.layout.setStatusText(` Directory already exists: ${dirPath.split("/").pop()}`);
+        return;
+      }
+      await fileService.createDirectory(dirPath);
+      await this.fileTree.load();
+      this.layout.setStatusText(` Created directory: ${dirPath.split("/").pop()}`);
+    } catch {
+      this.layout.setStatusText(` Failed to create directory`);
+    }
+  }
+
+  /** Rename a file or directory */
+  private async renameEntry(oldPath: string, newName: string): Promise<void> {
+    try {
+      const parts = oldPath.split("/");
+      parts.pop();
+      const newPath = parts.join("/") + "/" + newName;
+
+      const exists = await fileService.exists(newPath);
+      if (exists) {
+        this.layout.setStatusText(` Name already taken: ${newName}`);
+        return;
+      }
+
+      await fileService.rename(oldPath, newPath);
+
+      // Update any open tab that references the old path
+      const tab = this.tabManager.findTabByPath(oldPath);
+      if (tab) {
+        this.tabManager.renameTab(tab.id, newPath);
+      }
+
+      await this.fileTree.load();
+      this.layout.setStatusText(` Renamed to: ${newName}`);
+      this.updateStatusBar();
+    } catch {
+      this.layout.setStatusText(` Failed to rename`);
+    }
+  }
+
+  /** Show confirmation dialog before deleting */
+  private confirmDelete(entry: FileEntry): void {
+    const name = entry.name;
+    const typeLabel = entry.isDirectory ? "directory" : "file";
+
+    this.confirmDialog.show({
+      title: `Delete ${typeLabel}?`,
+      message: `"${name}" will be permanently deleted.`,
+      confirmLabel: "Delete",
+      cancelLabel: "Cancel",
+      onConfirm: () => {
+        this.executeDelete(entry);
+      },
+      onCancel: () => {
+        this.setFocus("tree");
+      },
+    });
+  }
+
+  /** Execute the delete operation */
+  private async executeDelete(entry: FileEntry): Promise<void> {
+    try {
+      // Close any open tab for this file
+      const tab = this.tabManager.findTabByPath(entry.path);
+      if (tab) {
+        const nextTab = this.tabManager.closeTab(tab.id);
+        if (!nextTab && this.tabManager.tabCount === 0) {
+          await this.editor.newFile();
+        }
+      }
+
+      await fileService.delete(entry.path);
+      await this.fileTree.load();
+      this.layout.setStatusText(` Deleted: ${entry.name}`);
+      this.setFocus("tree");
+      this.updateStatusBar();
+    } catch {
+      this.layout.setStatusText(` Failed to delete: ${entry.name}`);
+      this.setFocus("tree");
+    }
+  }
+
   /** Open the search dialog */
   private openSearch(mode: "find" | "replace"): void {
     this._previousFocus = this._focus;
@@ -524,6 +667,7 @@ export class App {
   /** Quit the application cleanly */
   quit(): void {
     this._isRunning = false;
+    this.confirmDialog.destroy();
     this.searchDialog.destroy();
     this.editor.destroy();
     this.tabBar.destroy();
@@ -565,6 +709,11 @@ export class App {
   /** Access the search dialog (for testing) */
   getSearchDialog(): SearchDialog {
     return this.searchDialog;
+  }
+
+  /** Access the confirm dialog (for testing) */
+  getConfirmDialog(): ConfirmDialog {
+    return this.confirmDialog;
   }
 
   /** Access the renderer (for testing) */

@@ -271,8 +271,22 @@ describe("FileService", () => {
       expect(result).toBe(false);
     });
 
+    test("exists returns true for existing directory", async () => {
+      fs.mkdirSync(path.join(tempDir, "some-dir"));
+      const result = await service.exists(path.join(tempDir, "some-dir"));
+      expect(result).toBe(true);
+    });
+
     test("createFile creates a new empty file", async () => {
       const filePath = path.join(tempDir, "new-file.txt");
+      await service.createFile(filePath);
+
+      expect(fs.existsSync(filePath)).toBe(true);
+      expect(fs.readFileSync(filePath, "utf-8")).toBe("");
+    });
+
+    test("createFile creates parent directories if needed", async () => {
+      const filePath = path.join(tempDir, "deep", "nested", "file.txt");
       await service.createFile(filePath);
 
       expect(fs.existsSync(filePath)).toBe(true);
@@ -287,12 +301,37 @@ describe("FileService", () => {
       expect(fs.statSync(dirPath).isDirectory()).toBe(true);
     });
 
+    test("createDirectory creates nested directories recursively", async () => {
+      const dirPath = path.join(tempDir, "a", "b", "c");
+      await service.createDirectory(dirPath);
+
+      expect(fs.existsSync(dirPath)).toBe(true);
+      expect(fs.statSync(dirPath).isDirectory()).toBe(true);
+    });
+
     test("delete removes a file", async () => {
       const filePath = path.join(tempDir, "delete-me.txt");
       createTempFile(tempDir, "delete-me.txt", "content");
 
       await service.delete(filePath);
       expect(fs.existsSync(filePath)).toBe(false);
+    });
+
+    test("delete removes a directory recursively", async () => {
+      const dirPath = path.join(tempDir, "delete-dir");
+      fs.mkdirSync(dirPath);
+      fs.writeFileSync(path.join(dirPath, "child.txt"), "data");
+      fs.mkdirSync(path.join(dirPath, "subdir"));
+      fs.writeFileSync(path.join(dirPath, "subdir", "nested.txt"), "nested");
+
+      await service.delete(dirPath);
+      expect(fs.existsSync(dirPath)).toBe(false);
+    });
+
+    test("delete does not throw for non-existent path", async () => {
+      const filePath = path.join(tempDir, "does-not-exist.txt");
+      // force: true means this should not throw
+      await expect(service.delete(filePath)).resolves.toBeUndefined();
     });
 
     test("rename moves a file", async () => {
@@ -303,6 +342,27 @@ describe("FileService", () => {
       await service.rename(oldPath, newPath);
       expect(fs.existsSync(oldPath)).toBe(false);
       expect(fs.existsSync(newPath)).toBe(true);
+    });
+
+    test("rename preserves file content", async () => {
+      const oldPath = path.join(tempDir, "original.txt");
+      const newPath = path.join(tempDir, "renamed.txt");
+      createTempFile(tempDir, "original.txt", "important data");
+
+      await service.rename(oldPath, newPath);
+      expect(fs.readFileSync(newPath, "utf-8")).toBe("important data");
+    });
+
+    test("rename works on directories", async () => {
+      const oldPath = path.join(tempDir, "old-dir");
+      const newPath = path.join(tempDir, "new-dir");
+      fs.mkdirSync(oldPath);
+      fs.writeFileSync(path.join(oldPath, "file.txt"), "data");
+
+      await service.rename(oldPath, newPath);
+      expect(fs.existsSync(oldPath)).toBe(false);
+      expect(fs.existsSync(newPath)).toBe(true);
+      expect(fs.existsSync(path.join(newPath, "file.txt"))).toBe(true);
     });
   });
 });

@@ -1,7 +1,7 @@
 // src/components/file-tree.ts — File/directory tree browser component
 
 import type { CliRenderer, KeyEvent } from "@opentui/core";
-import { BoxRenderable, TextRenderable, ScrollBoxRenderable } from "@opentui/core";
+import { BoxRenderable, TextRenderable, ScrollBoxRenderable, InputRenderable } from "@opentui/core";
 
 import type { FileEntry } from "../services/file-service.ts";
 import { fileService } from "../services/file-service.ts";
@@ -37,6 +37,15 @@ export class FileTree {
 
   onFileSelect: ((filePath: string) => void) | null = null;
   onDirectoryToggle: ((entry: FileEntry) => void) | null = null;
+  onCreateFile: ((parentDir: string) => void) | null = null;
+  onCreateDirectory: ((parentDir: string) => void) | null = null;
+  onRename: ((entry: FileEntry) => void) | null = null;
+  onDelete: ((entry: FileEntry) => void) | null = null;
+
+  // Inline input state
+  private _inlineInput: InputRenderable | null = null;
+  private _inlineInputRow: BoxRenderable | null = null;
+  private _inlineMode: "new-file" | "new-dir" | "rename" | null = null;
 
   constructor(renderer: CliRenderer, rootPath: string) {
     this.renderer = renderer;
@@ -105,6 +114,11 @@ export class FileTree {
 
   /** Handle a keyboard event. Returns true if consumed. */
   handleKeyPress(event: KeyEvent): boolean {
+    // If inline input is active, delegate to it
+    if (this._inlineInput) {
+      return this.handleInlineInputKey(event);
+    }
+
     switch (event.name) {
       case "up":
         this.moveUp();
@@ -130,6 +144,29 @@ export class FileTree {
         return true;
       case "pagedown":
         this.pageDown();
+        return true;
+      case "a":
+        if (!event.ctrl && !event.meta && !event.shift) {
+          this.startNewFile();
+          return true;
+        }
+        if (event.shift && !event.ctrl && !event.meta) {
+          this.startNewDirectory();
+          return true;
+        }
+        return false;
+      case "A":
+        if (!event.ctrl && !event.meta) {
+          this.startNewDirectory();
+          return true;
+        }
+        return false;
+      case "f2":
+        this.startRename();
+        return true;
+      case "delete":
+      case "backspace":
+        this.requestDelete();
         return true;
       default:
         return false;
@@ -300,6 +337,43 @@ export class FileTree {
     this.scrollToSelected();
   }
 
+  /** Rebuild renderables including the inline input row at the right position */
+  private renderWithInlineInput(): void {
+    // Clear existing items from scrollBox
+    for (const item of this.itemRenderables) {
+      item.destroyRecursively();
+    }
+    this.itemRenderables = [];
+
+    const insertIndex = this._inlineMode === "rename" ? this._selectedIndex : this._selectedIndex + 1;
+
+    for (let i = 0; i < this.flatItems.length; i++) {
+      // For rename mode, skip the original item at the selected index
+      if (this._inlineMode === "rename" && i === this._selectedIndex) {
+        // Add inline input row in place of the renamed item
+        if (this._inlineInputRow) {
+          this.scrollBox.add(this._inlineInputRow);
+        }
+        continue;
+      }
+
+      const entry = this.flatItems[i]!;
+      const row = this.createItemRow(entry, i);
+      this.itemRenderables.push(row);
+      this.scrollBox.add(row);
+
+      // For new file/dir, insert inline input after the selected item
+      if (this._inlineMode !== "rename" && i === this._selectedIndex && this._inlineInputRow) {
+        this.scrollBox.add(this._inlineInputRow);
+      }
+    }
+
+    // If insertion point is at the end
+    if (this._inlineMode !== "rename" && insertIndex >= this.flatItems.length && this._inlineInputRow) {
+      this.scrollBox.add(this._inlineInputRow);
+    }
+  }
+
   /** Scroll so the selected item is visible */
   private scrollToSelected(): void {
     // ScrollBox handles this: scroll to the selected item's position
@@ -308,8 +382,176 @@ export class FileTree {
     }
   }
 
+  // ── File Operations ──────────────────────────────────────────────
+
+  /** Get the directory path for the selected entry (entry itself if dir, parent if file) */
+  private getSelectedDir(): string {
+    const entry = this.flatItems[this._selectedIndex];
+    if (!entry) return this.rootPath;
+    if (entry.isDirectory) return entry.path;
+    // Return the parent directory of the file
+    const parts = entry.path.split("/");
+    parts.pop();
+    return parts.join("/") || this.rootPath;
+  }
+
+  /** Start inline input for creating a new file */
+  private startNewFile(): void {
+    const parentDir = this.getSelectedDir();
+    this._inlineMode = "new-file";
+    this.showInlineInput("", parentDir);
+  }
+
+  /** Start inline input for creating a new directory */
+  private startNewDirectory(): void {
+    const parentDir = this.getSelectedDir();
+    this._inlineMode = "new-dir";
+    this.showInlineInput("", parentDir);
+  }
+
+  /** Start inline input for renaming */
+  private startRename(): void {
+    const entry = this.flatItems[this._selectedIndex];
+    if (!entry) return;
+    this._inlineMode = "rename";
+    this.showInlineInput(entry.name, "");
+  }
+
+  /** Request deletion of the selected entry */
+  private requestDelete(): void {
+    const entry = this.flatItems[this._selectedIndex];
+    if (!entry) return;
+    this.onDelete?.(entry);
+  }
+
+  /** Show an inline input at the current position */
+  private showInlineInput(initialValue: string, _context: string): void {
+    this.removeInlineInput();
+
+    const entry = this.flatItems[this._selectedIndex];
+    const depth = entry ? (entry.isDirectory ? entry.depth + 1 : entry.depth) : 0;
+    if (this._inlineMode === "rename" && entry) {
+      // Rename: same depth as the entry
+    }
+    const adjustedDepth = this._inlineMode === "rename" && entry ? entry.depth : depth;
+    const indent = " ".repeat(adjustedDepth * INDENT_SIZE);
+    const prefix = this._inlineMode === "new-dir" ? "+" : this._inlineMode === "rename" ? ">" : "+";
+
+    this._inlineInputRow = new BoxRenderable(this.renderer, {
+      id: "tree-inline-row",
+      width: "100%",
+      height: 1,
+      flexDirection: "row",
+      backgroundColor: BG_HIGHLIGHT,
+    });
+
+    const prefixText = new TextRenderable(this.renderer, {
+      id: "tree-inline-prefix",
+      content: `${indent}${prefix} `,
+      fg: ACCENT,
+      width: indent.length + 2,
+      height: 1,
+    });
+
+    this._inlineInput = new InputRenderable(this.renderer, {
+      id: "tree-inline-input",
+      flexGrow: 1,
+      backgroundColor: BG_HIGHLIGHT,
+      focusedBackgroundColor: BG_HIGHLIGHT,
+      textColor: FG_PRIMARY,
+      focusedTextColor: FG_PRIMARY,
+      cursorColor: ACCENT,
+      value: initialValue,
+    });
+
+    this._inlineInputRow.add(prefixText);
+    this._inlineInputRow.add(this._inlineInput);
+
+    // Insert after current selection — re-render with inline input
+    this.renderWithInlineInput();
+
+    this._inlineInput.focus();
+  }
+
+  /** Remove the inline input */
+  private removeInlineInput(): void {
+    if (this._inlineInputRow) {
+      this._inlineInputRow.destroyRecursively();
+      this._inlineInputRow = null;
+      this._inlineInput = null;
+      this._inlineMode = null;
+    }
+  }
+
+  /** Handle keyboard events while inline input is active */
+  private handleInlineInputKey(event: KeyEvent): boolean {
+    if (!this._inlineInput) return false;
+
+    // Escape — cancel inline input
+    if (event.name === "escape") {
+      this.removeInlineInput();
+      return true;
+    }
+
+    // Enter — submit
+    if (event.name === "return") {
+      const value = this._inlineInput.value.toString().trim();
+      if (value.length > 0) {
+        this.submitInlineInput(value);
+      } else {
+        this.removeInlineInput();
+      }
+      return true;
+    }
+
+    // Delegate to the input
+    return this._inlineInput.handleKeyPress(event);
+  }
+
+  /** Submit the inline input value */
+  private submitInlineInput(name: string): void {
+    const mode = this._inlineMode;
+    const entry = this.flatItems[this._selectedIndex];
+    this.removeInlineInput();
+
+    if (mode === "new-file") {
+      const parentDir = entry
+        ? (entry.isDirectory ? entry.path : this.getSelectedDir())
+        : this.rootPath;
+      this.onCreateFile?.(parentDir + "/" + name);
+    } else if (mode === "new-dir") {
+      const parentDir = entry
+        ? (entry.isDirectory ? entry.path : this.getSelectedDir())
+        : this.rootPath;
+      this.onCreateDirectory?.(parentDir + "/" + name);
+    } else if (mode === "rename" && entry) {
+      this.onRename?.(entry);
+      // Store the new name for the app to use
+      this._pendingRenameName = name;
+    }
+  }
+
+  // Temporary storage for rename operations
+  private _pendingRenameName = "";
+
+  /** Get the pending rename name (set after inline rename submit) */
+  get pendingRenameName(): string {
+    return this._pendingRenameName;
+  }
+
+  /** Clear the pending rename name */
+  clearPendingRenameName(): void {
+    this._pendingRenameName = "";
+  }
+
+  /** Check if inline input is active */
+  get isInlineInputActive(): boolean {
+    return this._inlineInput !== null;
+  }
+
   /** Clean up */
   destroy(): void {
+    this.removeInlineInput();
     for (const item of this.itemRenderables) {
       item.destroyRecursively();
     }

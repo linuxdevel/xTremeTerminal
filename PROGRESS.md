@@ -8,9 +8,9 @@
 
 ---
 
-## Current Status: PHASE 6 COMPLETE
+## Current Status: PHASE 7 COMPLETE
 
-**Next action to take:** Begin Phase 7 (File Operations: create, rename, delete) implementation.
+**Next action to take:** Begin Phase 8 (Status Bar & Command Palette) implementation.
 
 ---
 
@@ -25,7 +25,7 @@
 | Phase 4 | DONE | Syntax highlighting | 2026-02-11 | 2026-02-11 |
 | Phase 5 | DONE | Tab management | 2026-02-11 | 2026-02-11 |
 | Phase 6 | DONE | Advanced editor (undo/redo, clipboard, search) | 2026-02-11 | 2026-02-11 |
-| Phase 7 | NOT STARTED | File operations (create/rename/delete) | - | - |
+| Phase 7 | DONE | File operations (create/rename/delete) | 2026-02-11 | 2026-02-11 |
 | Phase 8 | NOT STARTED | Status bar & command palette | - | - |
 | Phase 9 | NOT STARTED | Polish & edge cases | - | - |
 
@@ -63,7 +63,7 @@
 | File | Status | Phase | Tests Written | Tests Passing |
 |------|--------|-------|---------------|---------------|
 | `src/index.ts` | DONE | 1 | NO | - |
-| `src/app.ts` | DONE | 1,2,3,5,6 | NO | - |
+| `src/app.ts` | DONE | 1,2,3,5,6,7 | NO | - |
 | `src/theme.ts` | DONE | 1,4,6 | YES | YES |
 | `src/keybindings.ts` | DONE | 1 | YES | YES |
 
@@ -72,12 +72,12 @@
 | File | Status | Phase | Tests Written | Tests Passing |
 |------|--------|-------|---------------|---------------|
 | `src/components/layout.ts` | DONE | 1,2,3,5 | YES | YES |
-| `src/components/file-tree.ts` | DONE | 2 | YES | YES |
+| `src/components/file-tree.ts` | DONE | 2,7 | YES | YES |
 | `src/components/editor.ts` | DONE | 3,4,5,6 | YES | YES |
 | `src/components/tab-bar.ts` | DONE | 5 | YES | YES |
 | `src/components/status-bar.ts` | NOT STARTED | 8 | NO | - |
 | `src/components/search-dialog.ts` | DONE | 6 | YES | YES |
-| `src/components/confirm-dialog.ts` | NOT STARTED | 7 | NO | - |
+| `src/components/confirm-dialog.ts` | DONE | 7 | YES | YES |
 | `src/components/command-palette.ts` | NOT STARTED | 8 | NO | - |
 
 ### Services
@@ -129,7 +129,7 @@
 | `tests/component/tab-bar.test.ts` | DONE | YES |
 | `tests/component/status-bar.test.ts` | NOT STARTED | - |
 | `tests/component/search-dialog.test.ts` | DONE | YES |
-| `tests/component/confirm-dialog.test.ts` | NOT STARTED | - |
+| `tests/component/confirm-dialog.test.ts` | DONE | YES |
 | `tests/component/layout.test.ts` | DONE | YES |
 
 ### Integration Tests
@@ -260,6 +260,19 @@
   - Created tests/component/search-dialog.test.ts (39 tests)
   - All 294 tests passing
 - **Next steps:** Begin Phase 7 (File Operations: create, rename, delete)
+
+### Session 8 - 2026-02-11
+- **Goal:** Complete Phase 7 (File Operations: create, rename, delete)
+- **Completed:**
+  - Created src/components/confirm-dialog.ts (ConfirmDialog overlay with show/hide, y/n shortcuts, button switching, callback safety)
+  - Updated src/components/file-tree.ts (inline input for new file/dir/rename, delete request via onCreateFile, onCreateDirectory, onRename, onDelete callbacks)
+  - Updated src/app.ts (confirm dialog integration, createFileAtPath, createDirectoryAtPath, renameEntry, confirmDelete, executeDelete, confirm dialog highest keyboard priority)
+  - Fixed inline import() type references in app.ts (replaced with proper top-level FileEntry import)
+  - Updated tests/component/file-tree.test.ts (fixed test for new "a" key behavior)
+  - Created tests/component/confirm-dialog.test.ts (30 tests covering initial state, show/hide, Escape, Enter, button switching, y/n shortcuts, key consumption, callback safety, cleanup)
+  - Extended tests/unit/file-service.test.ts (7 new tests for createFile, createDirectory, delete, rename, exists)
+  - All 330 tests passing
+- **Next steps:** Begin Phase 8 (Status Bar & Command Palette)
 
 ---
 

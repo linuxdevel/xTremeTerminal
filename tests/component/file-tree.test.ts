@@ -220,8 +220,8 @@ describe("FileTree", () => {
     const tree = new FileTree(renderer, tempDir);
     await tree.load();
 
-    expect(tree.handleKeyPress(createKeyEvent("a"))).toBe(false);
     expect(tree.handleKeyPress(createKeyEvent("x"))).toBe(false);
+    expect(tree.handleKeyPress(createKeyEvent("z"))).toBe(false);
   });
 
   test("directories appear before files", async () => {
