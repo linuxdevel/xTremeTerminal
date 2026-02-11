@@ -4,6 +4,7 @@
   "description": "Terminal-based text editor and file browser built with OpenTUI",
   "module": "src/index.ts",
   "type": "module",
+  "license": "GPL-3.0-only",
   "private": true,
   "bin": {
     "xterminal": "src/index.ts"
