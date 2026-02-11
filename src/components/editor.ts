@@ -696,7 +696,7 @@ export class Editor {
 
     this.welcomeText = new TextRenderable(this.renderer, {
       id: "editor-welcome",
-      content: " xTerm - Terminal Text Editor\n\n Open a file from the sidebar to start editing\n\n Ctrl+E  Focus file tree\n Ctrl+1  Focus editor\n Ctrl+B  Toggle sidebar\n Ctrl+S  Save file\n Ctrl+Q  Quit",
+      content: " xTerm - Terminal Text Editor\n\n Open a file from the sidebar to start editing\n\n Ctrl+E  Focus file tree\n Ctrl+G  Focus editor\n Ctrl+B  Toggle sidebar\n Ctrl+S  Save file\n Ctrl+Q  Quit",
       fg: FG_SECONDARY,
       width: "100%",
       flexGrow: 1,
