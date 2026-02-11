@@ -14,6 +14,8 @@ These work regardless of which component is focused.
 | Ctrl+B | Toggle sidebar visibility |
 | Ctrl+Shift+P | Open command palette |
 | F10 | Open menu bar |
+| Ctrl+E | Focus file tree |
+| Ctrl+G | Focus editor |
 
 ---
 
@@ -176,8 +178,9 @@ These shortcuts work when the command palette is open.
 ║                                  Ctrl+X  Cut         ║
 ║  SEARCH          VIEW            Ctrl+V  Paste       ║
 ║  Ctrl+F  Find    Ctrl+B  Sidebar Ctrl+A  Select All  ║
-║  Ctrl+Shift+H    Ctrl+Shift+P                        ║
-║    Replace         Command Palette                    ║
+║  Ctrl+Shift+H    Ctrl+E  Tree                        ║
+║    Replace       Ctrl+G  Editor                      ║
+║                  Ctrl+Shift+P  Command Palette       ║
 ║                  F10     Menu                         ║
 ║  TREE                                                 ║
 ║  n       New file    F2     Rename                    ║

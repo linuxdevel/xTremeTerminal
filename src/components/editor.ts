@@ -600,12 +600,13 @@ export class Editor {
 
   // ── Internal ────────────────────────────────────────────────────
 
-  /** Synchronously read cursor position from the textarea's editBuffer.
-   *  Works around an OpenTUI quirk where editorView.moveUpVisual/moveDownVisual
-   *  do not emit the "cursor-changed" event (unlike editBuffer.moveCursorLeft/Right),
-   *  so the onCursorChange callback never fires for arrow-up/down movement. */
+  /** Synchronously read cursor position from the textarea's editorView.
+   *  Must use editorView.getCursor() instead of editBuffer.getCursorPosition()
+   *  because up/down movement goes through editorView.moveUpVisual/moveDownVisual
+   *  which updates the EditorView's native cursor but does NOT sync back to the
+   *  EditBuffer's native cursor. The two are separate native FFI objects. */
   private syncCursorPosition(): void {
-    const cursor = this.textarea.editBuffer.getCursorPosition();
+    const cursor = this.textarea.editorView.getCursor();
     this._cursorLine = cursor.row;
     this._cursorColumn = cursor.col;
     this.onCursorChange?.(this._cursorLine, this._cursorColumn);

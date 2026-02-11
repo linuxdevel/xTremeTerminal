@@ -413,5 +413,6 @@ Unsaved Changes — 3 file(s) have unsaved changes. Exit?
 2. **Use the command palette** (Ctrl+Shift+P) when you forget a shortcut
 3. **Use the menu bar** (F10) for quick access to file operations and help
 4. **Ctrl+P** quickly filters the file tree to find files by name
-5. **Tabs preserve state** -- your cursor position and scroll are remembered per tab
-6. **Search documentation** from the Help menu to find answers without leaving the editor
+5. **Ctrl+E** focuses the file tree, **Ctrl+G** focuses the editor -- quick panel switching
+6. **Tabs preserve state** -- your cursor position and scroll are remembered per tab
+7. **Search documentation** from the Help menu to find answers without leaving the editor

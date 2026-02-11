@@ -19,7 +19,7 @@ import {
   INFO,
 } from "../theme.ts";
 
-import { fileService } from "../services/file-service.ts";
+import { EMBEDDED_DOCS, getEmbeddedDoc } from "../help-content.ts";
 
 // ── Types ──────────────────────────────────────────────────────────
 
@@ -59,7 +59,6 @@ export class HelpDialog {
   private _mode: HelpMode = "topics";
   private _selectedIndex = 0;
   private _query = "";
-  private _docsDir: string | null = null;
   private _viewingTopic = false;
 
   // ── Event Callbacks ─────────────────────────────────────────────
@@ -179,9 +178,9 @@ export class HelpDialog {
     return this._selectedIndex;
   }
 
-  /** Set the docs directory path for searching */
-  setDocsDir(dir: string): void {
-    this._docsDir = dir;
+  /** Set the docs directory path (no longer needed — docs are embedded) */
+  setDocsDir(_dir: string): void {
+    // No-op: docs are now embedded in help-content.ts
   }
 
   /** Show the help dialog in the given mode */
@@ -344,25 +343,19 @@ export class HelpDialog {
 
   private async viewTopic(index: number): Promise<void> {
     const topic = HELP_TOPICS[index];
-    if (!topic || !this._docsDir) return;
+    if (!topic) return;
 
     this._viewingTopic = true;
     this.titleText.content = ` ${topic.title}`;
 
-    const filePath = `${this._docsDir}/${topic.filename}`;
-
-    try {
-      const content = await fileService.readFileContent(filePath);
-      if (content === null) {
-        this.showContentLines([" Could not load help file."]);
-        return;
-      }
-
-      const lines = content.split("\n");
-      this.showContentLines(lines);
-    } catch {
-      this.showContentLines([" Error loading help file."]);
+    const content = getEmbeddedDoc(topic.filename);
+    if (content === null) {
+      this.showContentLines([" Could not load help file."]);
+      return;
     }
+
+    const lines = content.split("\n");
+    this.showContentLines(lines);
   }
 
   private showContentLines(lines: string[]): void {
@@ -397,19 +390,17 @@ export class HelpDialog {
 
   private async performSearch(): Promise<void> {
     const query = this._query.toLowerCase().trim();
-    if (!query || !this._docsDir) {
+    if (!query) {
       this.clearContent();
-      if (!query) {
-        const hint = new TextRenderable(this.renderer, {
-          id: "help-search-hint",
-          content: " Type to search documentation...",
-          fg: FG_SECONDARY,
-          width: "100%",
-          height: 1,
-        });
-        this.contentArea.add(hint);
-        this.contentRows.push(hint);
-      }
+      const hint = new TextRenderable(this.renderer, {
+        id: "help-search-hint",
+        content: " Type to search documentation...",
+        fg: FG_SECONDARY,
+        width: "100%",
+        height: 1,
+      });
+      this.contentArea.add(hint);
+      this.contentRows.push(hint);
       return;
     }
 
@@ -417,21 +408,13 @@ export class HelpDialog {
 
     const results: Array<{ file: string; line: string; lineNum: number }> = [];
 
-    for (const topic of HELP_TOPICS) {
-      const filePath = `${this._docsDir}/${topic.filename}`;
-      try {
-        const content = await fileService.readFileContent(filePath);
-        if (!content) continue;
-
-        const lines = content.split("\n");
-        for (let i = 0; i < lines.length; i++) {
-          const line = lines[i] ?? "";
-          if (line.toLowerCase().includes(query)) {
-            results.push({ file: topic.title, line: line.trim(), lineNum: i + 1 });
-          }
+    for (const doc of EMBEDDED_DOCS) {
+      const lines = doc.content.split("\n");
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i] ?? "";
+        if (line.toLowerCase().includes(query)) {
+          results.push({ file: doc.title, line: line.trim(), lineNum: i + 1 });
         }
-      } catch {
-        // Skip files that can't be read
       }
     }
 

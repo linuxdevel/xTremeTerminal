@@ -8,7 +8,7 @@
 
 ---
 
-## Current Status: BUG FIXES COMPLETE (v1.0.0g)
+## Current Status: BUG FIXES COMPLETE (v1.0.0h)
 
 **Next action to take:** Ready for release. All 438 tests passing.
 
@@ -67,9 +67,11 @@
 | File | Status | Phase | Tests Written | Tests Passing |
 |------|--------|-------|---------------|---------------|
 | `src/index.ts` | DONE | 1 | NO | - |
-| `src/app.ts` | DONE | 1,2,3,5,6,7,8,11 | NO | - |
+| `src/app.ts` | DONE | 1,2,3,5,6,7,8,11,14 | NO | - |
 | `src/theme.ts` | DONE | 1,4,6,11 | YES | YES |
-| `src/keybindings.ts` | DONE | 1,11 | YES | YES |
+| `src/keybindings.ts` | DONE | 1,11,14 | YES | YES |
+
+| `src/help-content.ts` | DONE | 14 | NO | - |
 
 ### Components
 
@@ -77,14 +79,14 @@
 |------|--------|-------|---------------|---------------|
 | `src/components/layout.ts` | DONE | 1,2,3,5,8,11 | YES | YES |
 | `src/components/file-tree.ts` | DONE | 2,7 | YES | YES |
-| `src/components/editor.ts` | DONE | 3,4,5,6,11 | YES | YES |
+| `src/components/editor.ts` | DONE | 3,4,5,6,11,14 | YES | YES |
 | `src/components/tab-bar.ts` | DONE | 5 | YES | YES |
 | `src/components/status-bar.ts` | DONE | 8 | YES | YES |
 | `src/components/search-dialog.ts` | DONE | 6 | YES | YES |
 | `src/components/confirm-dialog.ts` | DONE | 7 | YES | YES |
 | `src/components/command-palette.ts` | DONE | 8 | YES | YES |
 | `src/components/menu-bar.ts` | DONE | 11 | YES | YES |
-| `src/components/help-dialog.ts` | DONE | 11 | YES | YES |
+| `src/components/help-dialog.ts` | DONE | 11,14 | YES | YES |
 | `src/components/about-dialog.ts` | DONE | 11 | YES | YES |
 
 ### Services
@@ -358,6 +360,17 @@
   - Called `syncCursorPosition()` after every successful keypress: Tab, PageUp, PageDown, and the textarea.handleKeyPress() fallthrough
   - All 438 tests passing
   - Tagged as v1.0.0g
+- **Next steps:** Release ready
+
+### Session 14 - 2026-02-11
+- **Goal:** Fix 4 bugs found during release binary testing
+- **Completed:**
+  - **Bug 1 - Ln/Col still not updating on Arrow Up/Down:** Session 13's fix used `editBuffer.getCursorPosition()` which returns stale data after EditorView-based movement. Fixed `syncCursorPosition()` to use `editorView.getCursor()` instead, which reads the correct cursor position from the EditorView native object.
+  - **Bug 2 & 3 - Help Topics "Could not load help file" + Help Search finds nothing:** Compiled binary doesn't bundle external `docs/` files. Created `src/help-content.ts` with all 5 doc files embedded as string constants. Updated `help-dialog.ts` to use embedded docs instead of filesystem reads.
+  - **Bug 4 - Ctrl+1 (Focus Editor) doesn't work:** Most terminals can't send Ctrl+number combos (no VT100 escape sequence for Ctrl+1). Changed `KB_FOCUS_EDITOR` from Ctrl+1 to Ctrl+G. Updated keybindings, app.ts command palette label, and all docs.
+  - Updated external docs (keyboard-shortcuts.md, user-guide.md) with Ctrl+G binding and navigation shortcuts
+  - All 438 tests passing
+  - Tagged as v1.0.0h
 - **Next steps:** Release ready
 
 ---

@@ -59,7 +59,7 @@ export const KB_FOCUS_TREE: KeyBinding = {
 };
 
 export const KB_FOCUS_EDITOR: KeyBinding = {
-  key: "1",
+  key: "g",
   ctrl: true,
   description: "Focus editor",
 };

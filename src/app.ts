@@ -733,7 +733,7 @@ export class App {
       { id: "nav.nextTab", label: "Next Tab", shortcut: "Alt+Right", category: "Navigation", action: () => { this.saveActiveTabState(); this.tabManager.nextTab(); } },
       { id: "nav.prevTab", label: "Previous Tab", shortcut: "Alt+Left", category: "Navigation", action: () => { this.saveActiveTabState(); this.tabManager.previousTab(); } },
       { id: "nav.focusTree", label: "Focus File Tree", shortcut: "Ctrl+E", category: "Navigation", action: () => this.setFocus("tree") },
-      { id: "nav.focusEditor", label: "Focus Editor", shortcut: "Ctrl+1", category: "Navigation", action: () => this.setFocus("editor") },
+      { id: "nav.focusEditor", label: "Focus Editor", shortcut: "Ctrl+G", category: "Navigation", action: () => this.setFocus("editor") },
       { id: "help.search", label: "Search Documentation", shortcut: null, category: "Help", action: () => this.openHelp("search") },
       { id: "help.topics", label: "Help Topics", shortcut: null, category: "Help", action: () => this.openHelp("topics") },
       { id: "help.about", label: "About xTerm", shortcut: null, category: "Help", action: () => this.openAbout() },
