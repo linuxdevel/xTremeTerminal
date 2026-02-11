@@ -8,9 +8,9 @@
 
 ---
 
-## Current Status: v1.0.2 RELEASED
+## Current Status: v1.0.3 RELEASED
 
-**Next action to take:** Ready for release. All 438 tests passing.
+**Next action to take:** All features complete. All 438 tests passing. Ready for new feature work or bug fixes.
 
 ---
 
@@ -72,6 +72,7 @@
 | `src/keybindings.ts` | DONE | 1,11,14 | YES | YES |
 
 | `src/help-content.ts` | DONE | 14 | NO | - |
+| `src/build-info.ts` | DONE | 16 | NO | - |
 
 ### Components
 
@@ -387,6 +388,23 @@
   - All 438 tests passing
   - Tagged as v1.0.2
 - **Next steps:** Release ready
+
+### Session 16 - 2026-02-11
+- **Goal:** Rebrand to xTremeTerminal, dynamic about dialog, screenshot
+- **Completed:**
+  - Replaced ASCII art screenshot in README.md with real screenshot (screenshot.png)
+  - Renamed all "xTerm" references to "xTremeTerminal" across all src/ files (UI, help content, welcome screen, status bar, command palette, error messages, comments)
+  - Updated package.json: name to "xtremeterminal", version to "1.0.2"
+  - Created `src/build-info.ts` with APP_VERSION, APP_AUTHOR, BUILD_DATE constants (defaults: "dev", "Arne Brune Olsen", "source")
+  - Updated about dialog: title "xTremeTerminal", dynamic version/author/build-date from build-info.ts, added "Built:" row, increased dialog height
+  - Updated release workflow (.github/workflows/release.yml):
+    - Injects real version (from git tag minus "v" prefix), author, UTC build timestamp into src/build-info.ts before compiling
+    - Updates package.json version to match tag
+    - Uses printf instead of sed to avoid macOS sed -i incompatibility
+  - Fixed macOS build failure: replaced `sed -i` (Linux-only syntax) with `printf` and `bun -e` for cross-platform compatibility
+  - All 438 tests passing
+  - Tagged as v1.0.3
+- **Next steps:** All features complete. Ready for new feature work or bug fixes.
 
 ---
 
