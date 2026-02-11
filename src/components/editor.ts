@@ -321,6 +321,43 @@ export class Editor {
     return this._showingWelcome;
   }
 
+  /** Check if syntax highlighting is active */
+  get highlightingEnabled(): boolean {
+    return this._highlightingEnabled;
+  }
+
+  /** Swap the editor content for tab switching (no disk I/O). */
+  async swapContent(
+    filePath: string | null,
+    content: string,
+    language: string | null,
+    cursorLine: number,
+    cursorColumn: number,
+  ): Promise<void> {
+    this._suppressModifiedEvent = true;
+    this.hideWelcome();
+
+    this._filePath = filePath;
+    this._language = language;
+    this._highlightingEnabled = false;
+    this.textarea.clearAllHighlights();
+    this.textarea.setText(content);
+
+    // Reset modified state after microtask (content change events are deferred)
+    this._isModified = false;
+    await Promise.resolve();
+    this._isModified = false;
+    this._suppressModifiedEvent = false;
+
+    // Restore cursor position
+    if (cursorLine > 0) {
+      this.textarea.gotoLine(cursorLine);
+    }
+
+    // Apply syntax highlighting
+    await this.applyHighlights();
+  }
+
   // ── Internal ────────────────────────────────────────────────────
 
   private setModified(modified: boolean): void {

@@ -196,6 +196,15 @@ export class Layout {
     this.containers.sidebar.visible = visible;
   }
 
+  /** Replace tab bar placeholder with actual tab bar component */
+  replaceTabBarContent(renderable: BoxRenderable): void {
+    // Remove placeholder
+    this.containers.tabBar.remove(this.containers.tabBarPlaceholder.id);
+    this.containers.tabBarPlaceholder.destroy();
+    // Add the real component
+    this.containers.tabBar.add(renderable);
+  }
+
   /** Replace sidebar placeholder with actual file tree component */
   replaceSidebarContent(renderable: BoxRenderable): void {
     // Remove placeholder
