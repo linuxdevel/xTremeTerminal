@@ -1,6 +1,6 @@
 # User Guide
 
-This is the complete usage manual for xTerm, covering all features from file browsing to advanced text editing.
+This is the complete usage manual for xTremeTerminal, covering all features from file browsing to advanced text editing.
 
 ## Table of Contents
 
@@ -19,7 +19,7 @@ This is the complete usage manual for xTerm, covering all features from file bro
 
 ## Interface Overview
 
-xTerm uses a VS Code-style layout with five main areas:
+xTremeTerminal uses a VS Code-style layout with five main areas:
 
 ```
 ┌─────────────────────────────────────────────────────────┐
@@ -55,7 +55,7 @@ Shows current file info: filename, cursor position, language, encoding, and modi
 
 ## File Tree Browser
 
-The file tree shows the directory structure starting from the directory where xTerm was launched (or the path provided as a CLI argument).
+The file tree shows the directory structure starting from the directory where xTremeTerminal was launched (or the path provided as a CLI argument).
 
 ### Navigation
 
@@ -89,7 +89,7 @@ Directories are loaded lazily -- children are only read from disk when you expan
 
 ### Basic Editing
 
-xTerm provides a full text editor with all standard editing operations:
+xTremeTerminal provides a full text editor with all standard editing operations:
 
 - **Type** to insert text at the cursor position
 - **Backspace** deletes the character before the cursor
@@ -127,7 +127,7 @@ Hold **Shift** while pressing movement keys to select text:
 | Ctrl+X | Cut selected text |
 | Ctrl+V | Paste clipboard content |
 
-Note: xTerm uses an internal clipboard buffer. System clipboard integration may be available depending on your terminal's OSC 52 support. Ctrl+C only copies when text is selected; it does not exit the application.
+Note: xTremeTerminal uses an internal clipboard buffer. System clipboard integration may be available depending on your terminal's OSC 52 support. Ctrl+C only copies when text is selected; it does not exit the application.
 
 ### Undo / Redo
 
@@ -148,7 +148,7 @@ The status bar shows a confirmation message when the file is saved, and the modi
 
 ### Syntax Highlighting
 
-xTerm automatically detects the programming language based on the file extension and applies syntax highlighting using Tree-sitter. Supported languages include:
+xTremeTerminal automatically detects the programming language based on the file extension and applies syntax highlighting using Tree-sitter. Supported languages include:
 
 - TypeScript / JavaScript / JSX / TSX
 - Python
@@ -171,12 +171,12 @@ Line numbers are displayed in a gutter on the left side of the editor. The curre
 
 ## Tabs
 
-xTerm supports multiple open files using a tabbed interface.
+xTremeTerminal supports multiple open files using a tabbed interface.
 
 ### Opening Tabs
 
 - **Select a file** in the file tree and press **Enter** -- it opens in a new tab
-- If the file is already open, xTerm switches to the existing tab instead of opening a duplicate
+- If the file is already open, xTremeTerminal switches to the existing tab instead of opening a duplicate
 
 ### Switching Tabs
 
@@ -191,7 +191,7 @@ xTerm supports multiple open files using a tabbed interface.
 |-----|--------|
 | Ctrl+W | Close the current tab |
 
-If the file has unsaved changes, xTerm will ask for confirmation before closing:
+If the file has unsaved changes, xTremeTerminal will ask for confirmation before closing:
 
 ```
 Save changes to filename.ts? [Y/n/Cancel]
@@ -297,7 +297,7 @@ Press **F10** to open the menu bar at the top of the screen.
 |------|----------|--------|
 | Open File | Ctrl+E | Focus the file tree |
 | Save File | Ctrl+S | Save the current file |
-| Exit | Ctrl+Q | Exit xTerm |
+| Exit | Ctrl+Q | Exit xTremeTerminal |
 
 ### Help Menu
 
@@ -343,7 +343,7 @@ Press **Ctrl+Shift+P** to open the command palette:
 
 ## Help System
 
-xTerm includes a built-in help system accessible from the **Help** menu (F10, then navigate to Help).
+xTremeTerminal includes a built-in help system accessible from the **Help** menu (F10, then navigate to Help).
 
 ### Help Topics
 
@@ -395,7 +395,7 @@ The status bar also displays temporary messages:
 
 ## Exiting
 
-Press **Ctrl+Q** to exit xTerm. If you have unsaved changes, a confirmation dialog will appear:
+Press **Ctrl+Q** to exit xTremeTerminal. If you have unsaved changes, a confirmation dialog will appear:
 
 ```
 Unsaved Changes — 3 file(s) have unsaved changes. Exit?

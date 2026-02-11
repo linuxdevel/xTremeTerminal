@@ -1,6 +1,6 @@
-# xTerm Development Progress
+# xTremeTerminal Development Progress
 
-> This file tracks the implementation progress of xTerm, a terminal-based text editor
+> This file tracks the implementation progress of xTremeTerminal, a terminal-based text editor
 > and file browser built with OpenTUI. It is designed to allow development to resume
 > seamlessly if a session is interrupted.
 >

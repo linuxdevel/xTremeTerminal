@@ -1,6 +1,6 @@
-# xTerm
+# xTremeTerminal
 
-A terminal-based text editor and file browser built with [OpenTUI](https://opentui.com), the same TUI framework used by [OpenCode](https://opencode.ai). xTerm provides a VS Code-style editing experience entirely within the terminal.
+A terminal-based text editor and file browser built with [OpenTUI](https://opentui.com), the same TUI framework used by [OpenCode](https://opencode.ai). xTremeTerminal provides a VS Code-style editing experience entirely within the terminal.
 
 ## Features
 
@@ -17,7 +17,7 @@ A terminal-based text editor and file browser built with [OpenTUI](https://opent
 
 ## Screenshot
 
-![xTerm screenshot](screenshot.png)
+![xTremeTerminal screenshot](screenshot.png)
 
 ## Installation
 
@@ -67,10 +67,10 @@ bun run build
 ## Quick Start
 
 ```bash
-# Open xTerm in the current directory
+# Open xTremeTerminal in the current directory
 bun run src/index.ts
 
-# Open xTerm in a specific directory
+# Open xTremeTerminal in a specific directory
 bun run src/index.ts /path/to/project
 
 # Open a specific file

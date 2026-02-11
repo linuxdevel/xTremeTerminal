@@ -1,12 +1,12 @@
 # Configuration
 
-xTerm uses a Tokyo Night inspired dark theme by default. This document describes the theme configuration and customization options.
+xTremeTerminal uses a Tokyo Night inspired dark theme by default. This document describes the theme configuration and customization options.
 
 ## Theme
 
 ### Color Palette
 
-xTerm uses the following color palette, inspired by the [Tokyo Night](https://github.com/enkia/tokyo-night-vscode-theme) VS Code theme:
+xTremeTerminal uses the following color palette, inspired by the [Tokyo Night](https://github.com/enkia/tokyo-night-vscode-theme) VS Code theme:
 
 #### Background Colors
 
@@ -86,7 +86,7 @@ Default: Off (no wrap). Code is displayed without line wrapping. Use horizontal 
 
 ### Encoding
 
-Default: UTF-8. xTerm reads and writes files in UTF-8 encoding.
+Default: UTF-8. xTremeTerminal reads and writes files in UTF-8 encoding.
 
 ## File Handling
 
@@ -100,7 +100,7 @@ Default: UTF-8. xTerm reads and writes files in UTF-8 encoding.
 
 ### Binary Files
 
-Binary files (detected by null bytes in the first 8KB) are not opened for editing. xTerm displays a message: "Binary file - cannot edit".
+Binary files (detected by null bytes in the first 8KB) are not opened for editing. xTremeTerminal displays a message: "Binary file - cannot edit".
 
 Known binary extensions that skip content detection:
 `.png`, `.jpg`, `.jpeg`, `.gif`, `.bmp`, `.ico`, `.svg`, `.mp3`, `.mp4`, `.avi`,
@@ -127,7 +127,7 @@ Known binary extensions that skip content detection:
 
 ## Environment Variables
 
-xTerm inherits OpenTUI's environment variable support:
+xTremeTerminal inherits OpenTUI's environment variable support:
 
 | Variable | Description |
 |----------|-------------|

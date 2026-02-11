@@ -1,6 +1,6 @@
 # Architecture
 
-Technical architecture overview for xTerm, covering design decisions, component relationships, and data flow.
+Technical architecture overview for xTremeTerminal, covering design decisions, component relationships, and data flow.
 
 ## Design Principles
 
@@ -208,7 +208,7 @@ Clipboard
 
 ## Focus Management
 
-xTerm has two focus zones:
+xTremeTerminal has two focus zones:
 
 1. **File Tree** - receives arrow keys for navigation, n/N/F2/Delete for file ops
 2. **Editor** - receives all text input, editing shortcuts
@@ -290,7 +290,7 @@ This allows tests to create renderables and simulate input without needing an ac
 
 ## File Format Support
 
-xTerm edits plain text files. It intentionally does not support:
+xTremeTerminal edits plain text files. It intentionally does not support:
 - Binary file editing (hex editors are better for this)
 - Rich text / WYSIWYG editing
 - Image viewing (beyond file tree icons)

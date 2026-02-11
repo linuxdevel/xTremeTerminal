@@ -1,6 +1,6 @@
 # Keyboard Shortcuts
 
-Complete reference of all keyboard shortcuts in xTerm.
+Complete reference of all keyboard shortcuts in xTremeTerminal.
 
 ---
 
@@ -10,7 +10,7 @@ These work regardless of which component is focused.
 
 | Shortcut | Action |
 |----------|--------|
-| Ctrl+Q | Exit xTerm (with unsaved changes confirmation) |
+| Ctrl+Q | Exit xTremeTerminal (with unsaved changes confirmation) |
 | Ctrl+B | Toggle sidebar visibility |
 | Ctrl+Shift+P | Open command palette |
 | F10 | Open menu bar |
@@ -169,7 +169,7 @@ These shortcuts work when the command palette is open.
 
 ```
 ╔═══════════════════════════════════════════════════════╗
-║                    xTerm Shortcuts                     ║
+║                    xTremeTerminal Shortcuts                     ║
 ╠═══════════════════════════════════════════════════════╣
 ║  FILES           TABS            EDITING              ║
 ║  Ctrl+S  Save    Alt+Right Next  Ctrl+Z  Undo        ║

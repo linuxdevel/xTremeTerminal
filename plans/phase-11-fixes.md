@@ -15,7 +15,7 @@ This phase addresses bugs found during user testing and adds a menu bar with hel
 ## 1. Fix Tab Switching Keybinding
 
 ### Problem
-`Ctrl+Tab` is intercepted by WSL/Windows Terminal to switch between terminal instances, so it never reaches xTerm.
+`Ctrl+Tab` is intercepted by WSL/Windows Terminal to switch between terminal instances, so it never reaches xTremeTerminal.
 
 ### Solution
 Change tab switching to `Alt+Right` / `Alt+Left` (meta modifier, which passes through terminals).
@@ -63,7 +63,7 @@ After `editor.handleKeyPress()` in app.ts, always call `updateStatusBar()` to en
 ## 3. Disable Ctrl+C Quit
 
 ### Problem
-Users accidentally kill xTerm by pressing Ctrl+C out of habit.
+Users accidentally kill xTremeTerminal by pressing Ctrl+C out of habit.
 
 ### Solution
 Remove Ctrl+C as a quit shortcut entirely. Ctrl+C should ONLY copy text when there is a selection in the editor. When there's no selection, Ctrl+C should do nothing (it's already consumed by the editor returning false, then app would previously quit — we remove that fallback).
@@ -168,7 +168,7 @@ When a topic is selected, displays the content of the corresponding doc file in 
 ### 5d. About Dialog (`src/components/about-dialog.ts`)
 
 Simple modal overlay showing:
-- App name: xTerm
+- App name: xTremeTerminal
 - Version (from package.json)
 - Author info
 - License: GPL-3.0

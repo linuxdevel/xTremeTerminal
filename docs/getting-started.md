@@ -1,14 +1,14 @@
 # Getting Started
 
-This guide walks you through installing and running xTerm for the first time.
+This guide walks you through installing and running xTremeTerminal for the first time.
 
 ## Prerequisites
 
-Before installing xTerm, make sure you have the following:
+Before installing xTremeTerminal, make sure you have the following:
 
 ### 1. Bun (required)
 
-xTerm runs on [Bun](https://bun.sh), a fast JavaScript/TypeScript runtime. Node.js will not work because xTerm's underlying UI library (OpenTUI) uses Bun-specific FFI bindings.
+xTremeTerminal runs on [Bun](https://bun.sh), a fast JavaScript/TypeScript runtime. Node.js will not work because xTremeTerminal's underlying UI library (OpenTUI) uses Bun-specific FFI bindings.
 
 ```bash
 # Install Bun
@@ -37,10 +37,10 @@ zig version   # Should be >= 0.13
 
 ### 3. Terminal
 
-xTerm works best with a modern terminal emulator that supports:
+xTremeTerminal works best with a modern terminal emulator that supports:
 - **True color** (24-bit color) - for the full Tokyo Night theme
 - **256 colors** minimum - basic theme support
-- **Alternate screen buffer** - xTerm takes over the full terminal
+- **Alternate screen buffer** - xTremeTerminal takes over the full terminal
 - **Mouse input** (optional) - for clicking tabs and tree items
 
 Recommended terminals: Kitty, Alacritty, WezTerm, iTerm2, Windows Terminal, GNOME Terminal.
@@ -57,7 +57,7 @@ cd xTremeTerminal
 # Install dependencies
 bun install
 
-# Run xTerm
+# Run xTremeTerminal
 bun run src/index.ts
 ```
 
@@ -80,7 +80,7 @@ xterm
 bun run src/index.ts
 ```
 
-This opens xTerm with the file tree showing the current working directory.
+This opens xTremeTerminal with the file tree showing the current working directory.
 
 ### Opening a Specific Directory
 
@@ -96,7 +96,7 @@ bun run src/index.ts /path/to/file.ts
 
 ## Your First Session
 
-When xTerm launches, you'll see:
+When xTremeTerminal launches, you'll see:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -105,7 +105,7 @@ When xTerm launches, you'll see:
 │              │                                               │
 │  File Tree   │  Editor Area                                  │
 │              │                                               │
-│  > src/      │  Welcome to xTerm!                            │
+│  > src/      │  Welcome to xTremeTerminal!                            │
 │  > tests/    │                                               │
 │    README.md │  Use arrow keys to navigate the file tree.    │
 │    ...       │  Press Enter to open a file.                  │
@@ -154,11 +154,11 @@ OpenTUI requires Zig to build its native components. Install Zig and make sure i
 Your terminal may not support true color. Try setting `COLORTERM=truecolor` in your environment, or switch to a terminal that supports 24-bit color.
 
 ### Terminal looks garbled after crash
-If xTerm exits abnormally without cleaning up the terminal, run:
+If xTremeTerminal exits abnormally without cleaning up the terminal, run:
 ```bash
 reset
 ```
 This restores your terminal to its normal state.
 
 ### "Terminal too small"
-xTerm requires a minimum of 40 columns and 10 rows. Resize your terminal window.
+xTremeTerminal requires a minimum of 40 columns and 10 rows. Resize your terminal window.

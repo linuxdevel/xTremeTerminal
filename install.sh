@@ -1,5 +1,5 @@
 #!/bin/bash
-# install.sh — Install xterminal (xTerm terminal editor)
+# install.sh — Install xterminal (xTremeTerminal terminal editor)
 # Usage: curl -fsSL https://raw.githubusercontent.com/linuxdevel/xTremeTerminal/main/install.sh | bash
 set -euo pipefail
 
@@ -31,7 +31,7 @@ detect_platform() {
     Darwin) PLATFORM="darwin" ;;
     *)
       error "Unsupported operating system: $os"
-      error "xTerm currently supports Linux and macOS."
+      error "xTremeTerminal currently supports Linux and macOS."
       exit 1
       ;;
   esac
@@ -45,7 +45,7 @@ detect_architecture() {
     aarch64|arm64) ARCH="arm64" ;;
     *)
       error "Unsupported architecture: $arch"
-      error "xTerm currently supports x86_64 and arm64."
+      error "xTremeTerminal currently supports x86_64 and arm64."
       exit 1
       ;;
   esac
@@ -141,7 +141,7 @@ install_binary() {
 
 print_success() {
   echo ""
-  printf "${GREEN}${BOLD}xTerm installed successfully!${NC}\n"
+  printf "${GREEN}${BOLD}xTremeTerminal installed successfully!${NC}\n"
   echo ""
 
   # Check if install dir is in PATH
@@ -178,7 +178,7 @@ print_success() {
 # ── Main ────────────────────────────────────────────────────────────
 
 main() {
-  printf "${BOLD}xTerm Installer${NC}\n"
+  printf "${BOLD}xTremeTerminal Installer${NC}\n"
   echo ""
 
   detect_platform

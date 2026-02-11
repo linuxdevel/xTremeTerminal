@@ -1,8 +1,8 @@
-# AGENTS.md - AI Agent Guidelines for xTerm
+# AGENTS.md - AI Agent Guidelines for xTremeTerminal
 
 ## Project Overview
 
-**xTerm** is a terminal-based text editor and file browser built with **OpenTUI** (`@opentui/core`), running on **Bun**. It provides a VS Code-style interface with a file tree sidebar, tabbed editor, syntax highlighting, and status bar -- all inside the terminal.
+**xTremeTerminal** is a terminal-based text editor and file browser built with **OpenTUI** (`@opentui/core`), running on **Bun**. It provides a VS Code-style interface with a file tree sidebar, tabbed editor, syntax highlighting, and status bar -- all inside the terminal.
 
 ## Tech Stack
 
