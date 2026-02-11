@@ -53,6 +53,7 @@
 | `plans/phase-7-file-operations.md` | DONE |
 | `plans/phase-8-statusbar-commands.md` | DONE |
 | `plans/phase-9-polish.md` | DONE |
+| `plans/phase-10-install-ci.md` | DONE |
 
 ---
 
