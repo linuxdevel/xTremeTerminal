@@ -178,7 +178,7 @@ export const ALL_KEYBINDINGS: readonly KeyBinding[] = [
 // ── Matcher Function ───────────────────────────────────────────────
 
 export function matchesBinding(event: KeyEvent, binding: KeyBinding): boolean {
-  if (event.name !== binding.key) return false;
+  if (event.name.toLowerCase() !== binding.key.toLowerCase()) return false;
   if (!!binding.ctrl !== event.ctrl) return false;
   if (!!binding.meta !== event.meta) return false;
   if (!!binding.shift !== event.shift) return false;
@@ -194,7 +194,7 @@ export function findDuplicateBindings(bindings: readonly KeyBinding[]): [KeyBind
       const a = bindings[i]!;
       const b = bindings[j]!;
       if (
-        a.key === b.key &&
+        a.key.toLowerCase() === b.key.toLowerCase() &&
         !!a.ctrl === !!b.ctrl &&
         !!a.meta === !!b.meta &&
         !!a.shift === !!b.shift

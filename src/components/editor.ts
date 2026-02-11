@@ -97,6 +97,7 @@ export class Editor {
   // Search highlighting state
   private _searchHighlightRef = 99; // hlRef for search match highlights
   private _currentSearchHighlightRef = 100; // hlRef for current match highlight
+  private _syntaxHighlightRef = 101; // hlRef for syntax highlights
 
   // ── Event Callbacks ─────────────────────────────────────────────
 
@@ -118,6 +119,7 @@ export class Editor {
     });
 
     // Create the textarea (editable text area)
+    // Override OpenTUI's Emacs-style defaults with standard PC keybindings
     this.textarea = new TextareaRenderable(renderer, {
       id: "editor-textarea",
       width: "100%",
@@ -132,6 +134,33 @@ export class Editor {
       wrapMode: "none",
       showCursor: true,
       syntaxStyle: SYNTAX_STYLE,
+      keyBindings: [
+        // Fix Home/End: go to line start/end (not file start/end)
+        { name: "home", action: "line-home" },
+        { name: "end", action: "line-end" },
+        // Fix Shift+Home/End: select to line start/end
+        { name: "home", shift: true, action: "select-line-home" },
+        { name: "end", shift: true, action: "select-line-end" },
+        // Add Ctrl+Home/End: go to file start/end
+        { name: "home", ctrl: true, action: "buffer-home" },
+        { name: "end", ctrl: true, action: "buffer-end" },
+        // Add Ctrl+Shift+Home/End: select to file start/end
+        { name: "home", ctrl: true, shift: true, action: "select-buffer-home" },
+        { name: "end", ctrl: true, shift: true, action: "select-buffer-end" },
+        // Add Ctrl+Shift+Left/Right: word selection
+        { name: "left", ctrl: true, shift: true, action: "select-word-backward" },
+        { name: "right", ctrl: true, shift: true, action: "select-word-forward" },
+        // Fix Ctrl+A: select all (not Emacs line-home)
+        { name: "a", ctrl: true, action: "select-all" },
+        // Neutralize Emacs Ctrl+E (conflicts with KB_FOCUS_TREE)
+        { name: "e", ctrl: true, action: "line-end" },
+        // Neutralize Emacs Ctrl+F (conflicts with KB_FIND)
+        { name: "f", ctrl: true, action: "move-right" },
+        // Neutralize Emacs Ctrl+B (conflicts with KB_TOGGLE_SIDEBAR)
+        { name: "b", ctrl: true, action: "move-left" },
+        // Neutralize Emacs Ctrl+W (conflicts with KB_CLOSE_TAB)
+        { name: "w", ctrl: true, action: "delete-word-backward" },
+      ],
     });
 
     // Create line number gutter
@@ -293,6 +322,32 @@ export class Editor {
 
   /** Handle a keyboard event. Returns true if consumed. */
   handleKeyPress(event: KeyEvent): boolean {
+    // Tab inserts 4 spaces (OpenTUI ignores charCode < 32 by default)
+    if (event.name === "tab" && !event.ctrl && !event.meta && !event.shift) {
+      this.textarea.insertText("    ");
+      return true;
+    }
+
+    // PageUp: move cursor up by viewport height
+    if (event.name === "pageup" && !event.ctrl && !event.meta) {
+      const viewport = this.textarea.editorView.getViewport();
+      const pageSize = Math.max(1, viewport.height - 1);
+      for (let i = 0; i < pageSize; i++) {
+        this.textarea.moveCursorUp({ select: event.shift });
+      }
+      return true;
+    }
+
+    // PageDown: move cursor down by viewport height
+    if (event.name === "pagedown" && !event.ctrl && !event.meta) {
+      const viewport = this.textarea.editorView.getViewport();
+      const pageSize = Math.max(1, viewport.height - 1);
+      for (let i = 0; i < pageSize; i++) {
+        this.textarea.moveCursorDown({ select: event.shift });
+      }
+      return true;
+    }
+
     // Intercept undo/redo (Ctrl+Z / Ctrl+Y / Ctrl+Shift+Z)
     if (event.ctrl && !event.meta && event.name === "z" && !event.shift) {
       this.textarea.undo();
@@ -569,13 +624,13 @@ export class Editor {
     const filetype = this.getFiletype();
     if (!filetype) {
       this._highlightingEnabled = false;
-      this.textarea.clearAllHighlights();
+      this.textarea.removeHighlightsByRef(this._syntaxHighlightRef);
       return;
     }
 
     const content = this.textarea.plainText;
     if (!content) {
-      this.textarea.clearAllHighlights();
+      this.textarea.removeHighlightsByRef(this._syntaxHighlightRef);
       return;
     }
 
@@ -588,8 +643,8 @@ export class Editor {
         return;
       }
 
-      // Clear existing highlights before applying new ones
-      this.textarea.clearAllHighlights();
+      // Clear only syntax highlights (preserve search highlights)
+      this.textarea.removeHighlightsByRef(this._syntaxHighlightRef);
 
       // Apply each highlight from Tree-sitter
       for (const hl of result.highlights) {
@@ -600,6 +655,7 @@ export class Editor {
             start,
             end,
             styleId,
+            hlRef: this._syntaxHighlightRef,
           } as Highlight);
         }
       }

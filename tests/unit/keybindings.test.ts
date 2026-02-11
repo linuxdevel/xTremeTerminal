@@ -133,6 +133,11 @@ describe("Keybindings", () => {
       expect(matchesBinding(event, KB_REPLACE)).toBe(true);
     });
 
+    test("matches Ctrl+Shift+H for replace with uppercase H (Windows Terminal)", () => {
+      const event = createKeyEvent("H", { ctrl: true, shift: true });
+      expect(matchesBinding(event, KB_REPLACE)).toBe(true);
+    });
+
     test("does not match Ctrl+H for replace (missing shift)", () => {
       const event = createKeyEvent("h", { ctrl: true });
       expect(matchesBinding(event, KB_REPLACE)).toBe(false);
@@ -150,6 +155,11 @@ describe("Keybindings", () => {
 
     test("matches Ctrl+Shift+P for command palette", () => {
       const event = createKeyEvent("p", { ctrl: true, shift: true });
+      expect(matchesBinding(event, KB_COMMAND_PALETTE)).toBe(true);
+    });
+
+    test("matches Ctrl+Shift+P for command palette with uppercase P", () => {
+      const event = createKeyEvent("P", { ctrl: true, shift: true });
       expect(matchesBinding(event, KB_COMMAND_PALETTE)).toBe(true);
     });
 

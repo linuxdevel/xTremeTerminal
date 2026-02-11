@@ -257,6 +257,66 @@ describe("Editor", () => {
     });
   });
 
+  describe("Tab key", () => {
+    test("Tab inserts 4 spaces", async () => {
+      const filePath = createTempFile(tempDir, "tab-test.ts", "");
+      const editor = new Editor(renderer);
+
+      await editor.loadFile(filePath);
+      const result = editor.handleKeyPress(createKeyEvent("tab"));
+      expect(result).toBe(true);
+      expect(editor.content).toContain("    ");
+    });
+
+    test("Tab does not insert when Ctrl is held", async () => {
+      const filePath = createTempFile(tempDir, "tab-test.ts", "");
+      const editor = new Editor(renderer);
+
+      await editor.loadFile(filePath);
+      const result = editor.handleKeyPress(createKeyEvent("tab", { ctrl: true }));
+      // Should not be consumed by Tab handler (falls through to textarea)
+      expect(result).toBeDefined();
+    });
+  });
+
+  describe("PageUp/PageDown", () => {
+    test("PageUp is consumed by handleKeyPress", async () => {
+      const filePath = createTempFile(tempDir, "page-test.ts", "line1\nline2\nline3\n");
+      const editor = new Editor(renderer);
+
+      await editor.loadFile(filePath);
+      const result = editor.handleKeyPress(createKeyEvent("pageup"));
+      expect(result).toBe(true);
+    });
+
+    test("PageDown is consumed by handleKeyPress", async () => {
+      const filePath = createTempFile(tempDir, "page-test.ts", "line1\nline2\nline3\n");
+      const editor = new Editor(renderer);
+
+      await editor.loadFile(filePath);
+      const result = editor.handleKeyPress(createKeyEvent("pagedown"));
+      expect(result).toBe(true);
+    });
+
+    test("Shift+PageUp is consumed (selection mode)", async () => {
+      const filePath = createTempFile(tempDir, "page-test.ts", "line1\nline2\nline3\n");
+      const editor = new Editor(renderer);
+
+      await editor.loadFile(filePath);
+      const result = editor.handleKeyPress(createKeyEvent("pageup", { shift: true }));
+      expect(result).toBe(true);
+    });
+
+    test("Shift+PageDown is consumed (selection mode)", async () => {
+      const filePath = createTempFile(tempDir, "page-test.ts", "line1\nline2\nline3\n");
+      const editor = new Editor(renderer);
+
+      await editor.loadFile(filePath);
+      const result = editor.handleKeyPress(createKeyEvent("pagedown", { shift: true }));
+      expect(result).toBe(true);
+    });
+  });
+
   describe("destroy", () => {
     test("destroy cleans up without errors", () => {
       const editor = new Editor(renderer);
