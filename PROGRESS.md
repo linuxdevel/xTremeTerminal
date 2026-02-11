@@ -8,9 +8,9 @@
 
 ---
 
-## Current Status: PHASE 8 COMPLETE
+## Current Status: PHASE 10 COMPLETE
 
-**Next action to take:** Begin Phase 9 (Polish & Edge Cases) implementation.
+**Next action to take:** Manual testing and release preparation.
 
 ---
 
@@ -27,7 +27,8 @@
 | Phase 6 | DONE | Advanced editor (undo/redo, clipboard, search) | 2026-02-11 | 2026-02-11 |
 | Phase 7 | DONE | File operations (create/rename/delete) | 2026-02-11 | 2026-02-11 |
 | Phase 8 | DONE | Status bar & command palette | 2026-02-11 | 2026-02-11 |
-| Phase 9 | NOT STARTED | Polish & edge cases | - | - |
+| Phase 9 | SKIPPED | Polish & edge cases | - | - |
+| Phase 10 | DONE | Install script & CI/CD workflows | 2026-02-11 | 2026-02-11 |
 
 ---
 
@@ -287,6 +288,17 @@
   - Created tests/component/command-palette.test.ts (35 tests covering initial state, registerCommands, show/hide, Escape, Enter, Up/Down navigation, executeSelected, onClose callback, cleanup)
   - All 387 tests passing
 - **Next steps:** Begin Phase 9 (Polish & Edge Cases)
+
+### Session 10 - 2026-02-11
+- **Goal:** Complete Phase 10 (Install Script & CI/CD Workflows)
+- **Completed:**
+  - Created install.sh (curl|bash install script with platform/arch detection, GitHub API version lookup, error handling, PATH check)
+  - Created .github/workflows/ci.yml (test + typecheck on push to main and PRs, with Zig 0.13.0 + Bun 1.3.9 + dependency caching)
+  - Created .github/workflows/release.yml (cross-platform build matrix: linux-x64, linux-arm64, darwin-x64, darwin-arm64; GitHub Release with softprops/action-gh-release)
+  - Updated package.json (added bin field, build scripts for all platforms)
+  - Updated README.md (added curl install instructions, supported platforms table, build from source section)
+  - All 387 tests still passing
+- **Next steps:** Manual testing, then consider Phase 9 polish items
 
 ---
 

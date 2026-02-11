@@ -35,31 +35,49 @@ A terminal-based text editor and file browser built with [OpenTUI](https://opent
 └─────────────────────────────────────────────────────────────┘
 ```
 
-## Prerequisites
-
-- [Bun](https://bun.sh) v1.0 or later
-- [Zig](https://ziglang.org) (required by OpenTUI's native renderer)
-- A terminal emulator with 256-color or true-color support
-
 ## Installation
+
+### Quick Install (Recommended)
+
+Install the latest pre-built binary with a single command:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/linuxdevel/xTremeTerminal/main/install.sh | bash
+```
+
+This will download the correct binary for your platform and install it to `~/.local/bin/xterminal`.
+
+To install to a custom location:
+
+```bash
+INSTALL_DIR=/usr/local/bin curl -fsSL https://raw.githubusercontent.com/linuxdevel/xTremeTerminal/main/install.sh | bash
+```
+
+### Supported Platforms
+
+| Platform | Architecture |
+|----------|-------------|
+| Linux    | x86_64, ARM64 |
+| macOS    | x86_64 (Intel), ARM64 (Apple Silicon) |
+
+### Build from Source
+
+Requires [Bun](https://bun.sh) v1.0+ and [Zig](https://ziglang.org) (for OpenTUI's native renderer).
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/xTremeTerminal.git
+git clone https://github.com/linuxdevel/xTremeTerminal.git
 cd xTremeTerminal
 
 # Install dependencies
 bun install
 
-# Run the application
+# Run directly
 bun run src/index.ts
-```
 
-Or install globally:
-
-```bash
-bun install -g .
-xterm
+# Or build a standalone binary
+bun run build
+./xterminal
 ```
 
 ## Quick Start

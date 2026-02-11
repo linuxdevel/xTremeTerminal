@@ -5,8 +5,16 @@
   "module": "src/index.ts",
   "type": "module",
   "private": true,
+  "bin": {
+    "xterminal": "src/index.ts"
+  },
   "scripts": {
     "start": "bun run src/index.ts",
+    "build": "bun build --compile --outfile=xterminal src/index.ts",
+    "build:linux-x64": "bun build --compile --target=bun-linux-x64-baseline --outfile=xterminal-linux-x64 src/index.ts",
+    "build:linux-arm64": "bun build --compile --target=bun-linux-arm64 --outfile=xterminal-linux-arm64 src/index.ts",
+    "build:darwin-x64": "bun build --compile --target=bun-darwin-x64-baseline --outfile=xterminal-darwin-x64 src/index.ts",
+    "build:darwin-arm64": "bun build --compile --target=bun-darwin-arm64 --outfile=xterminal-darwin-arm64 src/index.ts",
     "test": "bun test",
     "test:unit": "bun test tests/unit",
     "test:component": "bun test tests/component",
