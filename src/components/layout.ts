@@ -205,6 +205,15 @@ export class Layout {
     this.containers.sidebar.add(renderable);
   }
 
+  /** Replace editor area placeholder with actual editor component */
+  replaceEditorContent(renderable: BoxRenderable): void {
+    // Remove placeholder
+    this.containers.editorArea.remove(this.containers.editorPlaceholder.id);
+    this.containers.editorPlaceholder.destroy();
+    // Add the real component
+    this.containers.editorArea.add(renderable);
+  }
+
   /** Update status bar text */
   setStatusText(text: string): void {
     this.containers.statusBarPlaceholder.content = text;
