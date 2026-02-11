@@ -187,6 +187,14 @@ export class Editor {
       this.onCursorChange?.(this._cursorLine, this._cursorColumn);
     };
 
+    // Override the built-in paste handler to prevent the terminal's bracketed
+    // paste (system clipboard) from inserting content — we handle paste ourselves
+    // via Ctrl+V + internal clipboard. Without this, Ctrl+V causes a double paste:
+    // our internal clipboard AND the terminal's system clipboard content.
+    this.textarea.handlePaste = (_event: unknown) => {
+      // No-op: paste is handled by our Ctrl+V interceptor in handleKeyPress()
+    };
+
     // Assemble: line numbers then textarea
     this.container.add(this.lineNumbers);
     // textarea is added via LineNumberRenderable's target mechanism
@@ -281,6 +289,9 @@ export class Editor {
     await Promise.resolve();
     this._isModified = false;
     this._suppressModifiedEvent = false;
+
+    // Force gutter to remeasure for correct line number column width
+    this.remeasureGutter();
 
     // Apply syntax highlighting for the loaded file
     await this.applyHighlights();
@@ -594,6 +605,9 @@ export class Editor {
       this.textarea.gotoLine(cursorLine);
     }
 
+    // Force gutter to remeasure for correct line number column width
+    this.remeasureGutter();
+
     // Apply syntax highlighting
     await this.applyHighlights();
   }
@@ -610,6 +624,17 @@ export class Editor {
     this._cursorLine = cursor.row;
     this._cursorColumn = cursor.col;
     this.onCursorChange?.(this._cursorLine, this._cursorColumn);
+  }
+
+  /** Force the line number gutter to recalculate its width.
+   *  Needed after loading new content because the virtualLineCount may change
+   *  and the gutter's onLifecyclePass may not trigger a re-measure in time. */
+  private remeasureGutter(): void {
+    const gutter = (this.lineNumbers as any).gutter;
+    if (gutter && typeof gutter.remeasure === "function") {
+      gutter.remeasure();
+    }
+    this.lineNumbers.requestRender();
   }
 
   private setModified(modified: boolean): void {

@@ -44,7 +44,7 @@ export const MENU_BAR_HEIGHT = 1;
 export const TAB_BAR_HEIGHT = 1;
 export const STATUS_BAR_HEIGHT = 1;
 export const DEFAULT_TAB_SIZE = 4;
-export const LINE_NUMBER_MIN_WIDTH = 4;
+export const LINE_NUMBER_MIN_WIDTH = 5;
 export const LINE_NUMBER_PADDING_RIGHT = 1;
 
 // ── Search Highlight Colors ────────────────────────────────────────
