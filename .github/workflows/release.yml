@@ -16,7 +16,7 @@ jobs:
           - os: ubuntu-latest
             target: bun-linux-x64-baseline
             artifact: xterminal-linux-x64
-          - os: ubuntu-latest
+          - os: ubuntu-24.04-arm
             target: bun-linux-arm64
             artifact: xterminal-linux-arm64
           - os: macos-13
