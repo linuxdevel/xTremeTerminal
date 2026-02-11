@@ -10,17 +10,21 @@ This is the complete usage manual for xTerm, covering all features from file bro
 - [Tabs](#tabs)
 - [Search and Replace](#search-and-replace)
 - [File Operations](#file-operations)
+- [Menu Bar](#menu-bar)
 - [Command Palette](#command-palette)
+- [Help System](#help-system)
 - [Status Bar](#status-bar)
 
 ---
 
 ## Interface Overview
 
-xTerm uses a VS Code-style layout with four main areas:
+xTerm uses a VS Code-style layout with five main areas:
 
 ```
 ┌─────────────────────────────────────────────────────────┐
+│  Menu Bar                                                │
+├─────────────────────────────────────────────────────────┤
 │  Tab Bar                                                 │
 ├──────────────┬──────────────────────────────────────────┤
 │              │                                           │
@@ -31,6 +35,9 @@ xTerm uses a VS Code-style layout with four main areas:
 │  Status Bar                                              │
 └─────────────────────────────────────────────────────────┘
 ```
+
+### Menu Bar
+A top-level menu bar with **File** and **Help** menus. Open it with **F10** and navigate with arrow keys.
 
 ### Tab Bar
 Shows all currently open files. The active tab is highlighted with an accent color. Tabs with unsaved changes show a dot indicator.
@@ -120,7 +127,7 @@ Hold **Shift** while pressing movement keys to select text:
 | Ctrl+X | Cut selected text |
 | Ctrl+V | Paste clipboard content |
 
-Note: xTerm uses an internal clipboard buffer. System clipboard integration may be available depending on your terminal's OSC 52 support.
+Note: xTerm uses an internal clipboard buffer. System clipboard integration may be available depending on your terminal's OSC 52 support. Ctrl+C only copies when text is selected; it does not exit the application.
 
 ### Undo / Redo
 
@@ -175,8 +182,8 @@ xTerm supports multiple open files using a tabbed interface.
 
 | Key | Action |
 |-----|--------|
-| Ctrl+Tab | Switch to the next tab |
-| Ctrl+Shift+Tab | Switch to the previous tab |
+| Alt+Right | Switch to the next tab |
+| Alt+Left | Switch to the previous tab |
 
 ### Closing Tabs
 
@@ -228,7 +235,7 @@ Press **Ctrl+F** to open the search dialog:
 
 ### Find and Replace
 
-Press **Ctrl+H** to open the find and replace dialog:
+Press **Ctrl+Shift+H** to open the find and replace dialog:
 
 ```
 ┌─────────────────────────────────────┐
@@ -280,6 +287,36 @@ Press **Ctrl+H** to open the find and replace dialog:
 
 ---
 
+## Menu Bar
+
+Press **F10** to open the menu bar at the top of the screen.
+
+### File Menu
+
+| Item | Shortcut | Action |
+|------|----------|--------|
+| Open File | Ctrl+E | Focus the file tree |
+| Save File | Ctrl+S | Save the current file |
+| Exit | Ctrl+Q | Exit xTerm |
+
+### Help Menu
+
+| Item | Action |
+|------|--------|
+| Search Docs | Search through documentation files |
+| Help Topics | Browse help topics |
+| About | Show About dialog |
+
+### Navigation
+
+- Use **Left / Right** arrows to switch between menus
+- Press **Enter** or **Down** to open a dropdown
+- Use **Up / Down** arrows to navigate dropdown items
+- Press **Enter** to execute an item
+- Press **Escape** to close
+
+---
+
 ## Command Palette
 
 Press **Ctrl+Shift+P** to open the command palette:
@@ -301,6 +338,32 @@ Press **Ctrl+Shift+P** to open the command palette:
 - Use **Up / Down** arrows to navigate
 - Press **Enter** to execute the selected command
 - Press **Escape** to close without executing
+
+---
+
+## Help System
+
+xTerm includes a built-in help system accessible from the **Help** menu (F10, then navigate to Help).
+
+### Help Topics
+
+Browse through available documentation topics:
+
+- **Keyboard Shortcuts** — Complete shortcut reference
+- **Getting Started** — Quick start guide
+- **User Guide** — This document
+- **Configuration** — Configuration options
+- **Architecture** — Technical design
+
+Navigate with **Up / Down** arrows and press **Enter** to view a topic. Press **Escape** to go back to the topic list.
+
+### Search Documentation
+
+Search through all documentation files for specific keywords. Type your query and matching lines from all help files are shown with their source file and line number.
+
+### About Dialog
+
+Shows application information: version, author, license, and project link.
 
 ---
 
@@ -332,14 +395,15 @@ The status bar also displays temporary messages:
 
 ## Exiting
 
-Press **Ctrl+C** to exit xTerm. If you have unsaved changes, a confirmation prompt will appear:
+Press **Ctrl+Q** to exit xTerm. If you have unsaved changes, a confirmation dialog will appear:
 
 ```
-You have unsaved changes in 3 files. Exit anyway? [Y/n]
+Unsaved Changes — 3 file(s) have unsaved changes. Exit?
+[Exit] [Cancel]
 ```
 
-- **Y** or **Enter**: Exit immediately (changes are lost)
-- **n** or **Escape**: Cancel and return to the editor
+- **Exit**: Exit immediately (changes are lost)
+- **Cancel** or **Escape**: Cancel and return to the editor
 
 ---
 
@@ -347,6 +411,7 @@ You have unsaved changes in 3 files. Exit anyway? [Y/n]
 
 1. **Toggle the sidebar** with Ctrl+B to get more editor space when you don't need the file tree
 2. **Use the command palette** (Ctrl+Shift+P) when you forget a shortcut
-3. **Ctrl+P** quickly filters the file tree to find files by name
-4. **Tabs preserve state** -- your cursor position and scroll are remembered per tab
-5. **Press F1** for a quick keyboard shortcut reference
+3. **Use the menu bar** (F10) for quick access to file operations and help
+4. **Ctrl+P** quickly filters the file tree to find files by name
+5. **Tabs preserve state** -- your cursor position and scroll are remembered per tab
+6. **Search documentation** from the Help menu to find answers without leaving the editor

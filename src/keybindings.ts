@@ -35,15 +35,14 @@ export const KB_CLOSE_TAB: KeyBinding = {
 // ── Navigation ─────────────────────────────────────────────────────
 
 export const KB_NEXT_TAB: KeyBinding = {
-  key: "tab",
-  ctrl: true,
+  key: "right",
+  meta: true,
   description: "Next tab",
 };
 
 export const KB_PREV_TAB: KeyBinding = {
-  key: "tab",
-  ctrl: true,
-  shift: true,
+  key: "left",
+  meta: true,
   description: "Previous tab",
 };
 
@@ -89,6 +88,7 @@ export const KB_FIND: KeyBinding = {
 export const KB_REPLACE: KeyBinding = {
   key: "h",
   ctrl: true,
+  shift: true,
   description: "Find and replace",
 };
 
@@ -150,6 +150,11 @@ export const KB_COMMAND_PALETTE: KeyBinding = {
 
 // ── Application ────────────────────────────────────────────────────
 
+export const KB_MENU: KeyBinding = {
+  key: "f10",
+  description: "Open menu bar",
+};
+
 export const KB_QUIT: KeyBinding = {
   key: "q",
   ctrl: true,
@@ -166,6 +171,7 @@ export const ALL_KEYBINDINGS: readonly KeyBinding[] = [
   KB_SELECT_ALL, KB_CUT, KB_COPY, KB_PASTE,
   KB_TREE_DELETE, KB_TREE_RENAME, KB_TREE_NEW_FILE, KB_TREE_NEW_FOLDER,
   KB_COMMAND_PALETTE,
+  KB_MENU,
   KB_QUIT,
 ] as const;
 

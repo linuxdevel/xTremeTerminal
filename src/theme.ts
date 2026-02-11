@@ -40,6 +40,7 @@ export const SYNTAX_ATTRIBUTE = "#bb9af7";
 // ── UI Constants ───────────────────────────────────────────────────
 
 export const SIDEBAR_WIDTH = 25;
+export const MENU_BAR_HEIGHT = 1;
 export const TAB_BAR_HEIGHT = 1;
 export const STATUS_BAR_HEIGHT = 1;
 export const DEFAULT_TAB_SIZE = 4;

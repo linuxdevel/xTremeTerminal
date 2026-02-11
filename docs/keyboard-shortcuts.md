@@ -10,10 +10,10 @@ These work regardless of which component is focused.
 
 | Shortcut | Action |
 |----------|--------|
-| Ctrl+C | Exit xTerm (with unsaved changes prompt) |
+| Ctrl+Q | Exit xTerm (with unsaved changes confirmation) |
 | Ctrl+B | Toggle sidebar visibility |
 | Ctrl+Shift+P | Open command palette |
-| F1 | Show keyboard shortcut help |
+| F10 | Open menu bar |
 
 ---
 
@@ -30,8 +30,8 @@ These work regardless of which component is focused.
 
 | Shortcut | Action |
 |----------|--------|
-| Ctrl+Tab | Switch to next tab |
-| Ctrl+Shift+Tab | Switch to previous tab |
+| Alt+Right | Switch to next tab |
+| Alt+Left | Switch to previous tab |
 | Ctrl+W | Close current tab |
 
 ---
@@ -90,7 +90,7 @@ These work regardless of which component is focused.
 | Ctrl+X | Cut selected text |
 | Ctrl+V | Paste from clipboard |
 
-Note: When no text is selected in the editor, Ctrl+C acts as the exit shortcut.
+Note: Ctrl+C only copies when text is selected; it does not exit the application.
 
 ---
 
@@ -99,10 +99,23 @@ Note: When no text is selected in the editor, Ctrl+C acts as the exit shortcut.
 | Shortcut | Action |
 |----------|--------|
 | Ctrl+F | Open find dialog |
-| Ctrl+H | Open find and replace dialog |
+| Ctrl+Shift+H | Open find and replace dialog |
 | Enter | Next match (when find dialog is focused) |
 | Shift+Enter | Previous match (when find dialog is focused) |
 | Escape | Close search dialog |
+
+---
+
+## Menu Bar
+
+| Shortcut | Action |
+|----------|--------|
+| F10 | Open/close menu bar |
+| Left / Right | Navigate between menus |
+| Down / Enter | Open dropdown for selected menu |
+| Up / Down | Navigate dropdown items |
+| Enter | Execute selected menu item |
+| Escape | Close menu bar |
 
 ---
 
@@ -157,14 +170,15 @@ These shortcuts work when the command palette is open.
 ║                    xTerm Shortcuts                     ║
 ╠═══════════════════════════════════════════════════════╣
 ║  FILES           TABS            EDITING              ║
-║  Ctrl+S  Save    Ctrl+Tab  Next  Ctrl+Z  Undo        ║
-║  Ctrl+N  New     Ctrl+W   Close  Ctrl+Y  Redo        ║
-║  Ctrl+P  Find    Shift+Tab Prev  Ctrl+C  Copy        ║
+║  Ctrl+S  Save    Alt+Right Next  Ctrl+Z  Undo        ║
+║  Ctrl+N  New     Alt+Left  Prev  Ctrl+Y  Redo        ║
+║  Ctrl+Q  Quit    Ctrl+W   Close  Ctrl+C  Copy        ║
 ║                                  Ctrl+X  Cut         ║
 ║  SEARCH          VIEW            Ctrl+V  Paste       ║
 ║  Ctrl+F  Find    Ctrl+B  Sidebar Ctrl+A  Select All  ║
-║  Ctrl+H  Replace Ctrl+Shift+P   F1      Help        ║
-║                   Command Palette                     ║
+║  Ctrl+Shift+H    Ctrl+Shift+P                        ║
+║    Replace         Command Palette                    ║
+║                  F10     Menu                         ║
 ║  TREE                                                 ║
 ║  n       New file    F2     Rename                    ║
 ║  N       New dir     Del    Delete                    ║

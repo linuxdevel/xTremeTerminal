@@ -11,6 +11,7 @@ import {
   FG_MUTED,
   ACCENT,
   SIDEBAR_WIDTH,
+  MENU_BAR_HEIGHT,
   TAB_BAR_HEIGHT,
   STATUS_BAR_HEIGHT,
 } from "../theme.ts";
@@ -18,6 +19,8 @@ import {
 // ── Layout Structure ───────────────────────────────────────────────
 //
 // ┌─────────────────────────────────────────────┐
+// │  Menu Bar (height: 1)                        │
+// ├─────────────────────────────────────────────┤
 // │  Tab Bar (height: 1)                         │
 // ├──────────┬──────────────────────────────────┤
 // │ Sidebar  │  Editor Area                      │
@@ -29,12 +32,14 @@ import {
 
 export interface LayoutContainers {
   root: BoxRenderable;
+  menuBar: BoxRenderable;
   tabBar: BoxRenderable;
   middleRow: BoxRenderable;
   sidebar: BoxRenderable;
   editorArea: BoxRenderable;
   statusBar: BoxRenderable;
   // Placeholder text elements (replaced later by real components)
+  menuBarPlaceholder: TextRenderable;
   sidebarPlaceholder: TextRenderable;
   editorPlaceholder: TextRenderable;
   tabBarPlaceholder: TextRenderable;
@@ -62,6 +67,23 @@ export class Layout {
       flexDirection: "column",
       backgroundColor: BG_PRIMARY,
     });
+
+    // ── Menu Bar ────────────────────────────────────────────────────
+    const menuBar = new BoxRenderable(ctx, {
+      id: "menu-bar",
+      height: MENU_BAR_HEIGHT,
+      width: "100%",
+      flexDirection: "row",
+      backgroundColor: BG_SECONDARY,
+    });
+
+    const menuBarPlaceholder = new TextRenderable(ctx, {
+      id: "menu-bar-placeholder",
+      content: " File  Help",
+      fg: FG_SECONDARY,
+      width: "100%",
+    });
+    menuBar.add(menuBarPlaceholder);
 
     // ── Tab Bar ────────────────────────────────────────────────────
     const tabBar = new BoxRenderable(ctx, {
@@ -142,17 +164,20 @@ export class Layout {
     statusBar.add(statusBarPlaceholder);
 
     // Assemble layout
+    root.add(menuBar);
     root.add(tabBar);
     root.add(middleRow);
     root.add(statusBar);
 
     return {
       root,
+      menuBar,
       tabBar,
       middleRow,
       sidebar,
       editorArea,
       statusBar,
+      menuBarPlaceholder,
       sidebarPlaceholder,
       editorPlaceholder,
       tabBarPlaceholder,
@@ -164,6 +189,10 @@ export class Layout {
 
   get root(): BoxRenderable {
     return this.containers.root;
+  }
+
+  get menuBarContainer(): BoxRenderable {
+    return this.containers.menuBar;
   }
 
   get tabBar(): BoxRenderable {
@@ -194,6 +223,15 @@ export class Layout {
   setSidebarVisible(visible: boolean): void {
     this._sidebarVisible = visible;
     this.containers.sidebar.visible = visible;
+  }
+
+  /** Replace menu bar placeholder with actual menu bar component */
+  replaceMenuBarContent(renderable: BoxRenderable): void {
+    // Remove placeholder
+    this.containers.menuBar.remove(this.containers.menuBarPlaceholder.id);
+    this.containers.menuBarPlaceholder.destroy();
+    // Add the real component
+    this.containers.menuBar.add(renderable);
   }
 
   /** Replace tab bar placeholder with actual tab bar component */

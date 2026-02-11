@@ -313,15 +313,15 @@ export class Editor {
       return true;
     }
 
-    // Intercept copy (Ctrl+C) — only when there is a selection
+    // Intercept copy (Ctrl+C) — only copies when there is a selection
     if (event.ctrl && !event.meta && event.name === "c" && !event.shift) {
       if (this.textarea.hasSelection()) {
         const text = this.textarea.getSelectedText();
         clipboard.copy(text);
         return true;
       }
-      // If no selection, don't consume — let app handle Ctrl+C as quit
-      return false;
+      // No selection — consume silently (do not propagate)
+      return true;
     }
 
     // Intercept cut (Ctrl+X)

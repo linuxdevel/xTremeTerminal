@@ -17,6 +17,7 @@ import {
   KB_REPLACE,
   KB_QUIT,
   KB_COMMAND_PALETTE,
+  KB_MENU,
   type KeyBinding,
 } from "../../src/keybindings.ts";
 import { KeyEvent } from "@opentui/core";
@@ -92,18 +93,18 @@ describe("Keybindings", () => {
       expect(matchesBinding(event, KB_CLOSE_TAB)).toBe(true);
     });
 
-    test("matches Ctrl+Tab for next tab", () => {
-      const event = createKeyEvent("tab", { ctrl: true });
+    test("matches Alt+Right for next tab", () => {
+      const event = createKeyEvent("right", { meta: true });
       expect(matchesBinding(event, KB_NEXT_TAB)).toBe(true);
     });
 
-    test("matches Ctrl+Shift+Tab for previous tab", () => {
-      const event = createKeyEvent("tab", { ctrl: true, shift: true });
+    test("matches Alt+Left for previous tab", () => {
+      const event = createKeyEvent("left", { meta: true });
       expect(matchesBinding(event, KB_PREV_TAB)).toBe(true);
     });
 
-    test("does not match Ctrl+Tab for previous tab (missing shift)", () => {
-      const event = createKeyEvent("tab", { ctrl: true });
+    test("does not match Alt+Right for previous tab (wrong direction)", () => {
+      const event = createKeyEvent("right", { meta: true });
       expect(matchesBinding(event, KB_PREV_TAB)).toBe(false);
     });
 
@@ -127,9 +128,19 @@ describe("Keybindings", () => {
       expect(matchesBinding(event, KB_FIND)).toBe(true);
     });
 
-    test("matches Ctrl+H for replace", () => {
-      const event = createKeyEvent("h", { ctrl: true });
+    test("matches Ctrl+Shift+H for replace", () => {
+      const event = createKeyEvent("h", { ctrl: true, shift: true });
       expect(matchesBinding(event, KB_REPLACE)).toBe(true);
+    });
+
+    test("does not match Ctrl+H for replace (missing shift)", () => {
+      const event = createKeyEvent("h", { ctrl: true });
+      expect(matchesBinding(event, KB_REPLACE)).toBe(false);
+    });
+
+    test("matches F10 for menu", () => {
+      const event = createKeyEvent("f10");
+      expect(matchesBinding(event, KB_MENU)).toBe(true);
     });
 
     test("matches Ctrl+Q for quit", () => {

@@ -12,6 +12,10 @@ import { SearchDialog } from "./components/search-dialog.ts";
 import { ConfirmDialog } from "./components/confirm-dialog.ts";
 import { CommandPalette } from "./components/command-palette.ts";
 import type { Command } from "./components/command-palette.ts";
+import { MenuBar } from "./components/menu-bar.ts";
+import type { Menu } from "./components/menu-bar.ts";
+import { HelpDialog } from "./components/help-dialog.ts";
+import { AboutDialog } from "./components/about-dialog.ts";
 import { TabManager } from "./services/tab-manager.ts";
 import type { TabState } from "./services/tab-manager.ts";
 import type { FileEntry } from "./services/file-service.ts";
@@ -29,6 +33,7 @@ import {
   KB_FIND,
   KB_REPLACE,
   KB_COMMAND_PALETTE,
+  KB_MENU,
 } from "./keybindings.ts";
 import { BG_PRIMARY } from "./theme.ts";
 import { fileService } from "./services/file-service.ts";
@@ -41,7 +46,7 @@ export interface AppOptions {
   rootDir?: string;
 }
 
-type FocusTarget = "tree" | "editor" | "search" | "confirm" | "palette";
+type FocusTarget = "tree" | "editor" | "search" | "confirm" | "palette" | "menu" | "help" | "about";
 
 export class App {
   private renderer!: CliRenderer;
@@ -54,6 +59,9 @@ export class App {
   private searchDialog!: SearchDialog;
   private confirmDialog!: ConfirmDialog;
   private commandPalette!: CommandPalette;
+  private menuBar!: MenuBar;
+  private helpDialog!: HelpDialog;
+  private aboutDialog!: AboutDialog;
   private _isRunning = false;
   private _focus: FocusTarget = "tree";
   private _previousFocus: FocusTarget = "editor";
@@ -112,6 +120,51 @@ export class App {
     // Wire up command palette close event
     this.commandPalette.onClose = () => {
       this.setFocus(this._previousFocus === "palette" ? "editor" : this._previousFocus);
+    };
+
+    // Create and mount menu bar
+    this.menuBar = new MenuBar(this.renderer);
+    this.layout.replaceMenuBarContent(this.menuBar.renderable);
+    this.layout.root.add(this.menuBar.dropdownRenderable);
+
+    const menus: Menu[] = [
+      {
+        id: "file", label: "File", items: [
+          { id: "file.open", label: "Open File", shortcut: "Ctrl+E", action: () => this.setFocus("tree") },
+          { id: "file.save", label: "Save File", shortcut: "Ctrl+S", action: () => this.saveCurrentFile() },
+          { id: "file.exit", label: "Exit", shortcut: "Ctrl+Q", action: () => this.quit() },
+        ],
+      },
+      {
+        id: "help", label: "Help", items: [
+          { id: "help.search", label: "Search Docs", action: () => this.openHelp("search") },
+          { id: "help.topics", label: "Help Topics", action: () => this.openHelp("topics") },
+          { id: "help.about", label: "About", action: () => this.openAbout() },
+        ],
+      },
+    ];
+    this.menuBar.setMenus(menus);
+
+    this.menuBar.onClose = () => {
+      this.setFocus(this._previousFocus === "menu" ? "editor" : this._previousFocus);
+    };
+
+    // Create help dialog (overlay, added to root)
+    this.helpDialog = new HelpDialog(this.renderer);
+    const docsDir = rootDir + "/docs";
+    this.helpDialog.setDocsDir(docsDir);
+    this.layout.root.add(this.helpDialog.renderable);
+
+    this.helpDialog.onClose = () => {
+      this.setFocus(this._previousFocus === "help" ? "editor" : this._previousFocus);
+    };
+
+    // Create about dialog (overlay, added to root)
+    this.aboutDialog = new AboutDialog(this.renderer);
+    this.layout.root.add(this.aboutDialog.renderable);
+
+    this.aboutDialog.onClose = () => {
+      this.setFocus(this._previousFocus === "about" ? "editor" : this._previousFocus);
     };
 
     // Wire up tab manager events
@@ -301,6 +354,28 @@ export class App {
       return;
     }
 
+    // If about dialog is visible
+    if (this.aboutDialog.isVisible) {
+      if (this.aboutDialog.handleKeyPress(event)) {
+        event.preventDefault();
+      }
+      return;
+    }
+
+    // If help dialog is visible
+    if (this.helpDialog.isVisible) {
+      if (matchesBinding(event, KB_QUIT)) {
+        event.preventDefault();
+        this.helpDialog.hide();
+        this.quit();
+        return;
+      }
+      if (this.helpDialog.handleKeyPress(event)) {
+        event.preventDefault();
+      }
+      return;
+    }
+
     // If command palette is visible, give it high priority
     if (this.commandPalette.isVisible) {
       // Quit still works from command palette
@@ -319,6 +394,25 @@ export class App {
       }
 
       if (this.commandPalette.handleKeyPress(event)) {
+        event.preventDefault();
+      }
+      return;
+    }
+
+    // If menu bar is active (bar-focused or dropdown-open)
+    if (this.menuBar.isActive) {
+      if (matchesBinding(event, KB_QUIT)) {
+        event.preventDefault();
+        this.menuBar.close();
+        this.quit();
+        return;
+      }
+      if (matchesBinding(event, KB_MENU)) {
+        event.preventDefault();
+        this.menuBar.close();
+        return;
+      }
+      if (this.menuBar.handleKeyPress(event)) {
         event.preventDefault();
       }
       return;
@@ -368,18 +462,6 @@ export class App {
       return;
     }
 
-    // Also handle Ctrl+C as quit (only when editor doesn't have selection)
-    if (event.ctrl && event.name === "c" && !event.shift && !event.meta) {
-      // If editor is focused and has a selection, let the editor handle it (copy)
-      if (this._focus === "editor" && this.editor.hasSelection) {
-        // Fall through to editor handler
-      } else {
-        event.preventDefault();
-        this.quit();
-        return;
-      }
-    }
-
     // Save file
     if (matchesBinding(event, KB_SAVE)) {
       event.preventDefault();
@@ -405,6 +487,13 @@ export class App {
     if (matchesBinding(event, KB_COMMAND_PALETTE)) {
       event.preventDefault();
       this.openCommandPalette();
+      return;
+    }
+
+    // Menu Bar (F10)
+    if (matchesBinding(event, KB_MENU)) {
+      event.preventDefault();
+      this.openMenu();
       return;
     }
 
@@ -470,6 +559,8 @@ export class App {
         if (activeTab) {
           this.tabManager.updateTabContent(activeTab.id, this.editor.content);
         }
+        // Always refresh status bar after editor keystrokes (cursor position)
+        this.updateStatusBar();
       }
     }
   }
@@ -634,14 +725,18 @@ export class App {
       { id: "edit.undo", label: "Undo", shortcut: "Ctrl+Z", category: "Edit", action: () => this.editor.handleKeyPress({ name: "z", ctrl: true, shift: false, meta: false, sequence: "", preventDefault: () => {} } as any) },
       { id: "edit.redo", label: "Redo", shortcut: "Ctrl+Y", category: "Edit", action: () => this.editor.handleKeyPress({ name: "y", ctrl: true, shift: false, meta: false, sequence: "", preventDefault: () => {} } as any) },
       { id: "edit.find", label: "Find", shortcut: "Ctrl+F", category: "Edit", action: () => this.openSearch("find") },
-      { id: "edit.replace", label: "Find & Replace", shortcut: "Ctrl+H", category: "Edit", action: () => this.openSearch("replace") },
+      { id: "edit.replace", label: "Find & Replace", shortcut: "Ctrl+Shift+H", category: "Edit", action: () => this.openSearch("replace") },
       { id: "edit.selectAll", label: "Select All", shortcut: "Ctrl+A", category: "Edit", action: () => this.editor.handleKeyPress({ name: "a", ctrl: true, shift: false, meta: false, sequence: "", preventDefault: () => {} } as any) },
       { id: "view.toggleSidebar", label: "Toggle Sidebar", shortcut: "Ctrl+B", category: "View", action: () => this.layout.toggleSidebar() },
       { id: "view.commandPalette", label: "Command Palette", shortcut: "Ctrl+Shift+P", category: "View", action: () => this.openCommandPalette() },
-      { id: "nav.nextTab", label: "Next Tab", shortcut: "Ctrl+Tab", category: "Navigation", action: () => { this.saveActiveTabState(); this.tabManager.nextTab(); } },
-      { id: "nav.prevTab", label: "Previous Tab", shortcut: "Ctrl+Shift+Tab", category: "Navigation", action: () => { this.saveActiveTabState(); this.tabManager.previousTab(); } },
+      { id: "view.menu", label: "Menu Bar", shortcut: "F10", category: "View", action: () => this.openMenu() },
+      { id: "nav.nextTab", label: "Next Tab", shortcut: "Alt+Right", category: "Navigation", action: () => { this.saveActiveTabState(); this.tabManager.nextTab(); } },
+      { id: "nav.prevTab", label: "Previous Tab", shortcut: "Alt+Left", category: "Navigation", action: () => { this.saveActiveTabState(); this.tabManager.previousTab(); } },
       { id: "nav.focusTree", label: "Focus File Tree", shortcut: "Ctrl+E", category: "Navigation", action: () => this.setFocus("tree") },
       { id: "nav.focusEditor", label: "Focus Editor", shortcut: "Ctrl+1", category: "Navigation", action: () => this.setFocus("editor") },
+      { id: "help.search", label: "Search Documentation", shortcut: null, category: "Help", action: () => this.openHelp("search") },
+      { id: "help.topics", label: "Help Topics", shortcut: null, category: "Help", action: () => this.openHelp("topics") },
+      { id: "help.about", label: "About xTerm", shortcut: null, category: "Help", action: () => this.openAbout() },
       { id: "app.quit", label: "Quit", shortcut: "Ctrl+Q", category: "Application", action: () => this.quit() },
     ];
 
@@ -653,6 +748,27 @@ export class App {
     this._previousFocus = this._focus;
     this.commandPalette.show();
     this._focus = "palette";
+  }
+
+  /** Open the menu bar */
+  private openMenu(): void {
+    this._previousFocus = this._focus;
+    this.menuBar.open();
+    this._focus = "menu";
+  }
+
+  /** Open the help dialog */
+  private openHelp(mode: "search" | "topics"): void {
+    this._previousFocus = this._focus;
+    this.helpDialog.show(mode);
+    this._focus = "help";
+  }
+
+  /** Open the about dialog */
+  private openAbout(): void {
+    this._previousFocus = this._focus;
+    this.aboutDialog.show();
+    this._focus = "about";
   }
 
   /** Open the search dialog */
@@ -769,9 +885,32 @@ export class App {
     return this._focus;
   }
 
-  /** Quit the application cleanly */
+  /** Quit the application (with unsaved changes check) */
   quit(): void {
+    const unsavedTabs = this.tabManager.getAllTabs().filter(t => t.isModified);
+    if (unsavedTabs.length > 0) {
+      this._previousFocus = this._focus;
+      this.confirmDialog.show({
+        title: "Unsaved Changes",
+        message: `${unsavedTabs.length} file(s) have unsaved changes. Exit?`,
+        confirmLabel: "Exit",
+        cancelLabel: "Cancel",
+        onConfirm: () => this.forceQuit(),
+        onCancel: () => {
+          this.setFocus(this._previousFocus === "confirm" ? "editor" : this._previousFocus);
+        },
+      });
+      return;
+    }
+    this.forceQuit();
+  }
+
+  /** Force quit without checking for unsaved changes */
+  forceQuit(): void {
     this._isRunning = false;
+    this.aboutDialog.destroy();
+    this.helpDialog.destroy();
+    this.menuBar.destroy();
     this.commandPalette.destroy();
     this.confirmDialog.destroy();
     this.searchDialog.destroy();
@@ -831,6 +970,21 @@ export class App {
   /** Access the command palette (for testing) */
   getCommandPalette(): CommandPalette {
     return this.commandPalette;
+  }
+
+  /** Access the menu bar (for testing) */
+  getMenuBar(): MenuBar {
+    return this.menuBar;
+  }
+
+  /** Access the help dialog (for testing) */
+  getHelpDialog(): HelpDialog {
+    return this.helpDialog;
+  }
+
+  /** Access the about dialog (for testing) */
+  getAboutDialog(): AboutDialog {
+    return this.aboutDialog;
   }
 
   /** Access the renderer (for testing) */

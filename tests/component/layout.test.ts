@@ -29,6 +29,7 @@ describe("Layout", () => {
     const layout = new Layout(r);
 
     expect(layout.root).toBeDefined();
+    expect(layout.menuBarContainer).toBeDefined();
     expect(layout.tabBar).toBeDefined();
     expect(layout.sidebar).toBeDefined();
     expect(layout.editorArea).toBeDefined();
