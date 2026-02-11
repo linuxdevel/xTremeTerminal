@@ -17,23 +17,7 @@ A terminal-based text editor and file browser built with [OpenTUI](https://opent
 
 ## Screenshot
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│  [index.ts]  [utils.ts]  [theme.ts]                         │
-├──────────────┬──────────────────────────────────────────────┤
-│  > src/      │  1 │ import { createCliRenderer } from ...  │
-│    index.ts  │  2 │                                         │
-│    app.ts    │  3 │ const renderer = await createCli...     │
-│    theme.ts  │  4 │                                         │
-│  > tests/    │  5 │ renderer.root.add(                      │
-│  > docs/     │  6 │   Box({ width: "100%" },                │
-│    README.md │  7 │     Text({ content: "Hello" })          │
-│              │  8 │   )                                      │
-│              │  9 │ )                                        │
-├──────────────┴──────────────────────────────────────────────┤
-│  index.ts | Ln 3, Col 12 | TypeScript | UTF-8 | Modified   │
-└─────────────────────────────────────────────────────────────┘
-```
+![xTerm screenshot](screenshot.png)
 
 ## Installation
 
