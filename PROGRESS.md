@@ -8,9 +8,9 @@
 
 ---
 
-## Current Status: PHASE 11 COMPLETE
+## Current Status: BUG FIXES COMPLETE (v1.0.0f)
 
-**Next action to take:** Manual testing and release preparation.
+**Next action to take:** Ready for release. All 438 tests passing.
 
 ---
 
@@ -327,6 +327,27 @@
   - Keyboard shortcut audit: kept Alt+Right/Left for tabs (WSL-compatible), F10 for menu (standard TUI convention)
   - All 430 tests passing
 - **Next steps:** Manual testing and release preparation
+
+### Session 12 - 2026-02-11
+- **Goal:** Fix 12 editor bugs found during manual testing
+- **Completed:**
+  - Fixed Home/End keys going to file start/end instead of line start/end (overrode Emacs defaults)
+  - Fixed Shift+Home/End selecting to file start/end instead of line start/end
+  - Added Ctrl+Home/End for file start/end navigation
+  - Added Ctrl+Shift+Home/End for select to file start/end
+  - Added Ctrl+Shift+Left/Right for word selection
+  - Fixed Ctrl+A from Emacs line-home to select-all
+  - Added Tab key insertion (4 spaces)
+  - Added PageUp/PageDown with Shift selection support
+  - Fixed search highlights being cleared by syntax re-highlighting (use hlRef-based removal)
+  - Made keybinding matcher case-insensitive (fixes Ctrl+Shift+H in Windows Terminal sending uppercase H)
+  - Neutralized conflicting Emacs keybindings (Ctrl+E/F/B/W) that interfered with app shortcuts
+  - Investigated Ctrl+C/V (code is correct; issue is terminal-level interception in Windows Terminal)
+  - Investigated Ln/Col status bar (code is correct; cursor change callback fires properly)
+  - Added 8 new tests (Tab, PageUp/PageDown, case-insensitive keybinding matching)
+  - All 438 tests passing
+  - Tagged as v1.0.0f
+- **Next steps:** Release ready
 
 ---
 
