@@ -54,16 +54,14 @@ jobs:
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
           BUILD_DATE="$(date -u +"%Y-%m-%d %H:%M:%S UTC")"
-          cat > src/build-info.ts << EOF
-          // src/build-info.ts — Build-time metadata injected by the release workflow.
-          export const APP_VERSION = "${VERSION}";
-          export const APP_AUTHOR = "Arne Brune Olsen";
-          export const BUILD_DATE = "${BUILD_DATE}";
-          EOF
-          # Remove leading whitespace from heredoc
-          sed -i 's/^          //' src/build-info.ts
+          printf '%s\n' \
+            '// src/build-info.ts — Build-time metadata injected by the release workflow.' \
+            "export const APP_VERSION = \"${VERSION}\";" \
+            'export const APP_AUTHOR = "Arne Brune Olsen";' \
+            "export const BUILD_DATE = \"${BUILD_DATE}\";" \
+            > src/build-info.ts
           # Update package.json version to match tag
-          sed -i "s/\"version\": \".*\"/\"version\": \"${VERSION}\"/" package.json
+          bun -e "const p=JSON.parse(require('fs').readFileSync('package.json','utf8'));p.version='${VERSION}';require('fs').writeFileSync('package.json',JSON.stringify(p,null,2)+'\n')"
 
       - name: Build binary
         run: bun build --compile --target=${{ matrix.target }} --outfile=${{ matrix.artifact }} src/index.ts
