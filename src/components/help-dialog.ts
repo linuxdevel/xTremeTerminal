@@ -239,8 +239,20 @@ export class HelpDialog {
     if (this._viewingTopic) {
       // While viewing a topic, only Escape goes back (handled above)
       // Arrow keys scroll the content
-      if (event.name === "up" || event.name === "down") {
-        // ScrollBoxRenderable handles scrolling internally
+      if (event.name === "up") {
+        this.contentArea.scrollBy(-1 / 5, "viewport");
+        return true;
+      }
+      if (event.name === "down") {
+        this.contentArea.scrollBy(1 / 5, "viewport");
+        return true;
+      }
+      if (event.name === "pageup") {
+        this.contentArea.scrollBy(-1 / 2, "viewport");
+        return true;
+      }
+      if (event.name === "pagedown") {
+        this.contentArea.scrollBy(1 / 2, "viewport");
         return true;
       }
       return true;
@@ -379,7 +391,7 @@ export class HelpDialog {
     // Add back hint
     const backHint = new TextRenderable(this.renderer, {
       id: "help-back-hint",
-      content: " Press Escape to go back",
+      content: " ↑↓ Scroll  PgUp/PgDn Fast scroll  Esc Back",
       fg: FG_SECONDARY,
       width: "100%",
       height: 1,
