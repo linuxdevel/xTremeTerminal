@@ -196,6 +196,15 @@ export class Layout {
     this.containers.sidebar.visible = visible;
   }
 
+  /** Replace sidebar placeholder with actual file tree component */
+  replaceSidebarContent(renderable: BoxRenderable): void {
+    // Remove placeholder
+    this.containers.sidebar.remove(this.containers.sidebarPlaceholder.id);
+    this.containers.sidebarPlaceholder.destroy();
+    // Add the real component
+    this.containers.sidebar.add(renderable);
+  }
+
   /** Update status bar text */
   setStatusText(text: string): void {
     this.containers.statusBarPlaceholder.content = text;

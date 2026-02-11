@@ -8,9 +8,9 @@
 
 ---
 
-## Current Status: PHASE 1 COMPLETE
+## Current Status: PHASE 2 COMPLETE
 
-**Next action to take:** Begin Phase 2 (File Tree Browser) implementation.
+**Next action to take:** Begin Phase 3 (Text Editor Core) implementation.
 
 ---
 
@@ -20,7 +20,7 @@
 |-------|--------|-------------|---------|-----------|
 | Phase 0 | DONE | Prerequisites (Bun, Zig installation) | 2026-02-11 | 2026-02-11 |
 | Phase 1 | DONE | Project scaffolding & basic shell | 2026-02-11 | 2026-02-11 |
-| Phase 2 | NOT STARTED | File tree browser | - | - |
+| Phase 2 | DONE | File tree browser | 2026-02-11 | 2026-02-11 |
 | Phase 3 | NOT STARTED | Text editor core | - | - |
 | Phase 4 | NOT STARTED | Syntax highlighting | - | - |
 | Phase 5 | NOT STARTED | Tab management | - | - |
@@ -63,7 +63,7 @@
 | File | Status | Phase | Tests Written | Tests Passing |
 |------|--------|-------|---------------|---------------|
 | `src/index.ts` | DONE | 1 | NO | - |
-| `src/app.ts` | DONE | 1 | NO | - |
+| `src/app.ts` | DONE | 1,2 | NO | - |
 | `src/theme.ts` | DONE | 1 | YES | YES |
 | `src/keybindings.ts` | DONE | 1 | YES | YES |
 
@@ -71,8 +71,8 @@
 
 | File | Status | Phase | Tests Written | Tests Passing |
 |------|--------|-------|---------------|---------------|
-| `src/components/layout.ts` | DONE | 1 | YES | YES |
-| `src/components/file-tree.ts` | NOT STARTED | 2 | NO | - |
+| `src/components/layout.ts` | DONE | 1,2 | YES | YES |
+| `src/components/file-tree.ts` | DONE | 2 | YES | YES |
 | `src/components/editor.ts` | NOT STARTED | 3 | NO | - |
 | `src/components/tab-bar.ts` | NOT STARTED | 5 | NO | - |
 | `src/components/status-bar.ts` | NOT STARTED | 8 | NO | - |
@@ -84,7 +84,7 @@
 
 | File | Status | Phase | Tests Written | Tests Passing |
 |------|--------|-------|---------------|---------------|
-| `src/services/file-service.ts` | NOT STARTED | 2 | NO | - |
+| `src/services/file-service.ts` | DONE | 2 | YES | YES |
 | `src/services/tab-manager.ts` | NOT STARTED | 5 | NO | - |
 | `src/services/history.ts` | NOT STARTED | 6 | NO | - |
 | `src/services/clipboard.ts` | NOT STARTED | 6 | NO | - |
@@ -94,7 +94,7 @@
 | File | Status | Phase | Tests Written | Tests Passing |
 |------|--------|-------|---------------|---------------|
 | `src/utils/language-detect.ts` | NOT STARTED | 3 | NO | - |
-| `src/utils/file-icons.ts` | NOT STARTED | 2 | NO | - |
+| `src/utils/file-icons.ts` | DONE | 2 | YES | YES |
 
 ---
 
@@ -111,12 +111,12 @@
 
 | File | Status | Passing |
 |------|--------|---------|
-| `tests/unit/file-service.test.ts` | NOT STARTED | - |
+| `tests/unit/file-service.test.ts` | DONE | YES |
 | `tests/unit/tab-manager.test.ts` | NOT STARTED | - |
 | `tests/unit/history.test.ts` | NOT STARTED | - |
 | `tests/unit/clipboard.test.ts` | NOT STARTED | - |
 | `tests/unit/language-detect.test.ts` | NOT STARTED | - |
-| `tests/unit/file-icons.test.ts` | NOT STARTED | - |
+| `tests/unit/file-icons.test.ts` | DONE | YES |
 | `tests/unit/theme.test.ts` | DONE | YES |
 | `tests/unit/keybindings.test.ts` | DONE | YES |
 
@@ -124,7 +124,7 @@
 
 | File | Status | Passing |
 |------|--------|---------|
-| `tests/component/file-tree.test.ts` | NOT STARTED | - |
+| `tests/component/file-tree.test.ts` | DONE | YES |
 | `tests/component/editor.test.ts` | NOT STARTED | - |
 | `tests/component/tab-bar.test.ts` | NOT STARTED | - |
 | `tests/component/status-bar.test.ts` | NOT STARTED | - |
@@ -190,6 +190,20 @@
   - Created tests/component/layout.test.ts (10 tests)
   - All 47 tests passing
 - **Next steps:** Begin Phase 2 (File Tree Browser)
+
+### Session 3 - 2026-02-11
+- **Goal:** Complete Phase 2 (File Tree Browser)
+- **Completed:**
+  - Created src/services/file-service.ts (FileService class with full file I/O, tree building, expand/collapse/flatten)
+  - Created src/utils/file-icons.ts (text-based file type icons by extension/filename)
+  - Created src/components/file-tree.ts (interactive file tree with keyboard navigation)
+  - Updated src/app.ts (integrated file tree, focus switching, key delegation)
+  - Updated src/components/layout.ts (added replaceSidebarContent method)
+  - Created tests/unit/file-service.test.ts (34 tests)
+  - Created tests/unit/file-icons.test.ts (14 tests)
+  - Created tests/component/file-tree.test.ts (17 tests)
+  - All 112 tests passing
+- **Next steps:** Begin Phase 3 (Text Editor Core)
 
 ---
 
