@@ -16,7 +16,10 @@ import {
   FG_SECONDARY,
   FG_MUTED,
   ACCENT,
+  WARNING,
   INFO,
+  SYNTAX_KEYWORD,
+  SYNTAX_STRING,
 } from "../theme.ts";
 
 import { EMBEDDED_DOCS, getEmbeddedDoc } from "../help-content.ts";
@@ -34,6 +37,7 @@ export interface HelpTopic {
 
 const DIALOG_WIDTH = 60;
 const DIALOG_HEIGHT = 20;
+const CONTENT_WIDTH = DIALOG_WIDTH - 4; // usable width inside borders + padding
 
 const HELP_TOPICS: HelpTopic[] = [
   { title: "Keyboard Shortcuts", filename: "keyboard-shortcuts.md" },
@@ -373,14 +377,14 @@ export class HelpDialog {
   private showContentLines(lines: string[]): void {
     this.clearContent();
 
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i] ?? "";
-      // Basic markdown rendering: headers get ACCENT color
-      const isHeader = line.startsWith("#");
+    const formatted = this.formatMarkdown(lines);
+    for (let i = 0; i < formatted.length; i++) {
+      const entry = formatted[i]!;
       const row = new TextRenderable(this.renderer, {
         id: `help-content-${i}`,
-        content: ` ${line}`,
-        fg: isHeader ? ACCENT : FG_PRIMARY,
+        content: entry.text,
+        fg: entry.fg,
+        bg: entry.bg,
         width: "100%",
         height: 1,
       });
@@ -398,6 +402,126 @@ export class HelpDialog {
     });
     this.contentArea.add(backHint);
     this.contentRows.push(backHint);
+  }
+
+  /** Strip inline markdown formatting (bold, code, etc.) */
+  private stripInline(text: string): string {
+    return text
+      .replace(/\*\*(.+?)\*\*/g, "$1")  // **bold**
+      .replace(/\*(.+?)\*/g, "$1")       // *italic*
+      .replace(/`(.+?)`/g, "$1")         // `code`
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1"); // [link](url)
+  }
+
+  /** Format markdown lines into styled display entries */
+  private formatMarkdown(lines: string[]): Array<{ text: string; fg: string; bg?: string }> {
+    const result: Array<{ text: string; fg: string; bg?: string }> = [];
+
+    for (let i = 0; i < lines.length; i++) {
+      const raw = lines[i] ?? "";
+
+      // ── Horizontal rule ───────────────────────────────
+      if (/^---+\s*$/.test(raw)) {
+        result.push({ text: ` ${"─".repeat(CONTENT_WIDTH)}`, fg: FG_MUTED });
+        continue;
+      }
+
+      // ── Headers ───────────────────────────────────────
+      const headerMatch = raw.match(/^(#{1,4})\s+(.*)/);
+      if (headerMatch) {
+        const level = headerMatch[1]!.length;
+        const title = this.stripInline(headerMatch[2]!);
+
+        if (level === 1) {
+          // H1: prominent, with accent color and blank line after
+          result.push({ text: "", fg: FG_PRIMARY });
+          result.push({ text: ` ◆ ${title}`, fg: ACCENT });
+          result.push({ text: ` ${"─".repeat(CONTENT_WIDTH)}`, fg: ACCENT });
+        } else if (level === 2) {
+          // H2: section header
+          result.push({ text: "", fg: FG_PRIMARY });
+          result.push({ text: ` ▸ ${title}`, fg: INFO });
+        } else if (level === 3) {
+          // H3: subsection
+          result.push({ text: "", fg: FG_PRIMARY });
+          result.push({ text: `   ${title}`, fg: SYNTAX_KEYWORD });
+        } else {
+          // H4: minor heading
+          result.push({ text: `   ${title}`, fg: WARNING });
+        }
+        continue;
+      }
+
+      // ── Table separator row (|---|---| ) — skip it ────
+      if (/^\|[\s\-:|]+\|$/.test(raw.trim())) {
+        continue;
+      }
+
+      // ── Table row ─────────────────────────────────────
+      if (raw.trim().startsWith("|") && raw.trim().endsWith("|")) {
+        const cells = raw.trim().split("|").filter(Boolean).map((c) => this.stripInline(c.trim()));
+
+        // Determine if it's a header row (first row of a table — check if next line is separator)
+        const nextLine = (i + 1 < lines.length) ? (lines[i + 1] ?? "") : "";
+        const isHeaderRow = /^\|[\s\-:|]+\|$/.test(nextLine.trim());
+
+        if (isHeaderRow) {
+          // Header row: display with accent color
+          const formatted = cells.map((c) => c.padEnd(Math.max(c.length, 10))).join("  ");
+          result.push({ text: ` ${formatted}`, fg: ACCENT });
+          // Add a thin separator
+          result.push({ text: ` ${"·".repeat(Math.min(formatted.length, CONTENT_WIDTH))}`, fg: FG_MUTED });
+        } else {
+          // Data row
+          const formatted = cells.map((c) => c.padEnd(Math.max(c.length, 10))).join("  ");
+          result.push({ text: ` ${formatted}`, fg: FG_PRIMARY });
+        }
+        continue;
+      }
+
+      // ── Unordered list items ──────────────────────────
+      const ulMatch = raw.match(/^(\s*)[-*]\s+(.*)/);
+      if (ulMatch) {
+        const indent = Math.floor((ulMatch[1]?.length ?? 0) / 2);
+        const text = this.stripInline(ulMatch[2]!);
+        result.push({ text: ` ${"  ".repeat(indent)} • ${text}`, fg: FG_PRIMARY });
+        continue;
+      }
+
+      // ── Ordered list items ────────────────────────────
+      const olMatch = raw.match(/^(\s*)(\d+)\.\s+(.*)/);
+      if (olMatch) {
+        const indent = Math.floor((olMatch[1]?.length ?? 0) / 2);
+        const num = olMatch[2]!;
+        const text = this.stripInline(olMatch[3]!);
+        result.push({ text: ` ${"  ".repeat(indent)} ${num}. ${text}`, fg: FG_PRIMARY });
+        continue;
+      }
+
+      // ── Indented code block (4+ spaces or tab) ────────
+      if (/^( {4,}|\t)/.test(raw) && raw.trim().length > 0) {
+        const code = raw.replace(/^( {4}|\t)/, "");
+        result.push({ text: `   ${code}`, fg: SYNTAX_STRING, bg: BG_HIGHLIGHT });
+        continue;
+      }
+
+      // ── Blank line ────────────────────────────────────
+      if (raw.trim() === "") {
+        result.push({ text: "", fg: FG_PRIMARY });
+        continue;
+      }
+
+      // ── Note / callout lines ──────────────────────────
+      if (raw.startsWith("Note:") || raw.startsWith("NOTE:")) {
+        result.push({ text: ` ℹ ${this.stripInline(raw)}`, fg: WARNING });
+        continue;
+      }
+
+      // ── Regular paragraph text ────────────────────────
+      result.push({ text: ` ${this.stripInline(raw)}`, fg: FG_PRIMARY });
+    }
+
+    return result;
   }
 
   private async performSearch(): Promise<void> {
