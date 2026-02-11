@@ -7,8 +7,11 @@ import { Layout } from "./components/layout.ts";
 import { FileTree } from "./components/file-tree.ts";
 import { Editor } from "./components/editor.ts";
 import { TabBar } from "./components/tab-bar.ts";
+import { StatusBar } from "./components/status-bar.ts";
 import { SearchDialog } from "./components/search-dialog.ts";
 import { ConfirmDialog } from "./components/confirm-dialog.ts";
+import { CommandPalette } from "./components/command-palette.ts";
+import type { Command } from "./components/command-palette.ts";
 import { TabManager } from "./services/tab-manager.ts";
 import type { TabState } from "./services/tab-manager.ts";
 import type { FileEntry } from "./services/file-service.ts";
@@ -25,6 +28,7 @@ import {
   KB_NEW_FILE,
   KB_FIND,
   KB_REPLACE,
+  KB_COMMAND_PALETTE,
 } from "./keybindings.ts";
 import { BG_PRIMARY } from "./theme.ts";
 import { fileService } from "./services/file-service.ts";
@@ -37,7 +41,7 @@ export interface AppOptions {
   rootDir?: string;
 }
 
-type FocusTarget = "tree" | "editor" | "search" | "confirm";
+type FocusTarget = "tree" | "editor" | "search" | "confirm" | "palette";
 
 export class App {
   private renderer!: CliRenderer;
@@ -45,9 +49,11 @@ export class App {
   private fileTree!: FileTree;
   private editor!: Editor;
   private tabBar!: TabBar;
+  private statusBar!: StatusBar;
   private tabManager!: TabManager;
   private searchDialog!: SearchDialog;
   private confirmDialog!: ConfirmDialog;
+  private commandPalette!: CommandPalette;
   private _isRunning = false;
   private _focus: FocusTarget = "tree";
   private _previousFocus: FocusTarget = "editor";
@@ -86,6 +92,10 @@ export class App {
     this.editor = new Editor(this.renderer);
     this.layout.replaceEditorContent(this.editor.renderable);
 
+    // Create and mount status bar (replaces the status bar placeholder in layout)
+    this.statusBar = new StatusBar(this.renderer);
+    this.layout.replaceStatusBarContent(this.statusBar.renderable);
+
     // Create search dialog (overlay, added to root)
     this.searchDialog = new SearchDialog(this.renderer);
     this.layout.root.add(this.searchDialog.renderable);
@@ -93,6 +103,16 @@ export class App {
     // Create confirm dialog (overlay, added to root)
     this.confirmDialog = new ConfirmDialog(this.renderer);
     this.layout.root.add(this.confirmDialog.renderable);
+
+    // Create command palette (overlay, added to root)
+    this.commandPalette = new CommandPalette(this.renderer);
+    this.layout.root.add(this.commandPalette.renderable);
+    this.registerCommands();
+
+    // Wire up command palette close event
+    this.commandPalette.onClose = () => {
+      this.setFocus(this._previousFocus === "palette" ? "editor" : this._previousFocus);
+    };
 
     // Wire up tab manager events
     this.tabManager.onTabChange = (tab: TabState) => {
@@ -148,7 +168,7 @@ export class App {
 
     this.editor.onSave = (path: string) => {
       const fileName = path.split("/").pop() ?? path;
-      this.layout.setStatusText(` Saved: ${fileName}`);
+      this.statusBar.showMessage(`Saved: ${fileName}`, "success");
     };
 
     // Wire up search dialog events
@@ -171,7 +191,7 @@ export class App {
 
     this.searchDialog.onReplaceAll = (term, replacement) => {
       const count = this.editor.replaceAll(term, replacement);
-      this.layout.setStatusText(` Replaced ${count} occurrence${count !== 1 ? "s" : ""}`);
+      this.statusBar.showMessage(`Replaced ${count} occurrence${count !== 1 ? "s" : ""}`, "info");
       // Clear search after replace all
       this.editor.clearSearchHighlights();
       this.searchDialog.setMatches([]);
@@ -208,7 +228,7 @@ export class App {
     // Check if it's a text file first
     const isText = await fileService.isTextFile(filePath);
     if (!isText) {
-      this.layout.setStatusText(` Cannot open binary file`);
+      this.statusBar.showMessage("Cannot open binary file", "warning");
       return;
     }
 
@@ -225,7 +245,7 @@ export class App {
       this.setFocus("editor");
       this.updateStatusBar();
     } else {
-      this.layout.setStatusText(` Failed to open file`);
+      this.statusBar.showMessage("Failed to open file", "error");
     }
   }
 
@@ -276,6 +296,29 @@ export class App {
     // If confirm dialog is visible, give it highest priority
     if (this.confirmDialog.isVisible) {
       if (this.confirmDialog.handleKeyPress(event)) {
+        event.preventDefault();
+      }
+      return;
+    }
+
+    // If command palette is visible, give it high priority
+    if (this.commandPalette.isVisible) {
+      // Quit still works from command palette
+      if (matchesBinding(event, KB_QUIT)) {
+        event.preventDefault();
+        this.commandPalette.hide();
+        this.quit();
+        return;
+      }
+
+      // Toggle palette off with same shortcut
+      if (matchesBinding(event, KB_COMMAND_PALETTE)) {
+        event.preventDefault();
+        this.commandPalette.hide();
+        return;
+      }
+
+      if (this.commandPalette.handleKeyPress(event)) {
         event.preventDefault();
       }
       return;
@@ -358,6 +401,13 @@ export class App {
       return;
     }
 
+    // Command Palette (Ctrl+Shift+P)
+    if (matchesBinding(event, KB_COMMAND_PALETTE)) {
+      event.preventDefault();
+      this.openCommandPalette();
+      return;
+    }
+
     // Toggle sidebar
     if (matchesBinding(event, KB_TOGGLE_SIDEBAR)) {
       event.preventDefault();
@@ -427,7 +477,7 @@ export class App {
   /** Save the current file */
   private async saveCurrentFile(): Promise<void> {
     if (!this.editor.hasFile) {
-      this.layout.setStatusText(` No file to save`);
+      this.statusBar.showMessage("No file to save", "warning");
       return;
     }
 
@@ -439,7 +489,7 @@ export class App {
         this.tabManager.updateTabContent(activeTab.id, this.editor.content);
       }
     } else {
-      this.layout.setStatusText(` Failed to save file`);
+      this.statusBar.showMessage("Failed to save file", "error");
     }
   }
 
@@ -475,16 +525,16 @@ export class App {
     try {
       const exists = await fileService.exists(filePath);
       if (exists) {
-        this.layout.setStatusText(` File already exists: ${filePath.split("/").pop()}`);
+        this.statusBar.showMessage(`File already exists: ${filePath.split("/").pop()}`, "warning");
         return;
       }
       await fileService.createFile(filePath);
       await this.fileTree.load();
       // Open the new file in a tab
       await this.openFile(filePath);
-      this.layout.setStatusText(` Created: ${filePath.split("/").pop()}`);
+      this.statusBar.showMessage(`Created: ${filePath.split("/").pop()}`, "success");
     } catch {
-      this.layout.setStatusText(` Failed to create file`);
+      this.statusBar.showMessage("Failed to create file", "error");
     }
   }
 
@@ -493,14 +543,14 @@ export class App {
     try {
       const exists = await fileService.exists(dirPath);
       if (exists) {
-        this.layout.setStatusText(` Directory already exists: ${dirPath.split("/").pop()}`);
+        this.statusBar.showMessage(`Directory already exists: ${dirPath.split("/").pop()}`, "warning");
         return;
       }
       await fileService.createDirectory(dirPath);
       await this.fileTree.load();
-      this.layout.setStatusText(` Created directory: ${dirPath.split("/").pop()}`);
+      this.statusBar.showMessage(`Created directory: ${dirPath.split("/").pop()}`, "success");
     } catch {
-      this.layout.setStatusText(` Failed to create directory`);
+      this.statusBar.showMessage("Failed to create directory", "error");
     }
   }
 
@@ -513,7 +563,7 @@ export class App {
 
       const exists = await fileService.exists(newPath);
       if (exists) {
-        this.layout.setStatusText(` Name already taken: ${newName}`);
+        this.statusBar.showMessage(`Name already taken: ${newName}`, "warning");
         return;
       }
 
@@ -526,10 +576,10 @@ export class App {
       }
 
       await this.fileTree.load();
-      this.layout.setStatusText(` Renamed to: ${newName}`);
+      this.statusBar.showMessage(`Renamed to: ${newName}`, "success");
       this.updateStatusBar();
     } catch {
-      this.layout.setStatusText(` Failed to rename`);
+      this.statusBar.showMessage("Failed to rename", "error");
     }
   }
 
@@ -566,13 +616,43 @@ export class App {
 
       await fileService.delete(entry.path);
       await this.fileTree.load();
-      this.layout.setStatusText(` Deleted: ${entry.name}`);
+      this.statusBar.showMessage(`Deleted: ${entry.name}`, "success");
       this.setFocus("tree");
       this.updateStatusBar();
     } catch {
-      this.layout.setStatusText(` Failed to delete: ${entry.name}`);
+      this.statusBar.showMessage(`Failed to delete: ${entry.name}`, "error");
       this.setFocus("tree");
     }
+  }
+
+  /** Register all commands for the command palette */
+  private registerCommands(): void {
+    const commands: Command[] = [
+      { id: "file.save", label: "Save File", shortcut: "Ctrl+S", category: "File", action: () => this.saveCurrentFile() },
+      { id: "file.new", label: "New File", shortcut: "Ctrl+N", category: "File", action: () => this.newUntitledTab() },
+      { id: "file.close", label: "Close Tab", shortcut: "Ctrl+W", category: "File", action: () => this.closeCurrentTab() },
+      { id: "edit.undo", label: "Undo", shortcut: "Ctrl+Z", category: "Edit", action: () => this.editor.handleKeyPress({ name: "z", ctrl: true, shift: false, meta: false, sequence: "", preventDefault: () => {} } as any) },
+      { id: "edit.redo", label: "Redo", shortcut: "Ctrl+Y", category: "Edit", action: () => this.editor.handleKeyPress({ name: "y", ctrl: true, shift: false, meta: false, sequence: "", preventDefault: () => {} } as any) },
+      { id: "edit.find", label: "Find", shortcut: "Ctrl+F", category: "Edit", action: () => this.openSearch("find") },
+      { id: "edit.replace", label: "Find & Replace", shortcut: "Ctrl+H", category: "Edit", action: () => this.openSearch("replace") },
+      { id: "edit.selectAll", label: "Select All", shortcut: "Ctrl+A", category: "Edit", action: () => this.editor.handleKeyPress({ name: "a", ctrl: true, shift: false, meta: false, sequence: "", preventDefault: () => {} } as any) },
+      { id: "view.toggleSidebar", label: "Toggle Sidebar", shortcut: "Ctrl+B", category: "View", action: () => this.layout.toggleSidebar() },
+      { id: "view.commandPalette", label: "Command Palette", shortcut: "Ctrl+Shift+P", category: "View", action: () => this.openCommandPalette() },
+      { id: "nav.nextTab", label: "Next Tab", shortcut: "Ctrl+Tab", category: "Navigation", action: () => { this.saveActiveTabState(); this.tabManager.nextTab(); } },
+      { id: "nav.prevTab", label: "Previous Tab", shortcut: "Ctrl+Shift+Tab", category: "Navigation", action: () => { this.saveActiveTabState(); this.tabManager.previousTab(); } },
+      { id: "nav.focusTree", label: "Focus File Tree", shortcut: "Ctrl+E", category: "Navigation", action: () => this.setFocus("tree") },
+      { id: "nav.focusEditor", label: "Focus Editor", shortcut: "Ctrl+1", category: "Navigation", action: () => this.setFocus("editor") },
+      { id: "app.quit", label: "Quit", shortcut: "Ctrl+Q", category: "Application", action: () => this.quit() },
+    ];
+
+    this.commandPalette.registerCommands(commands);
+  }
+
+  /** Open the command palette */
+  private openCommandPalette(): void {
+    this._previousFocus = this._focus;
+    this.commandPalette.show();
+    this._focus = "palette";
   }
 
   /** Open the search dialog */
@@ -619,18 +699,43 @@ export class App {
 
     if (state.filePath) {
       const fileName = state.filePath.split("/").pop() ?? state.filePath;
-      const modifiedMark = state.isModified ? " [modified]" : "";
-      const langStr = state.language ? ` | ${state.language}` : "";
-      const cursorStr = ` Ln ${state.cursorLine + 1}, Col ${state.cursorColumn + 1}`;
-      const tabCount = this.tabManager.tabCount;
-      const tabStr = tabCount > 1 ? ` | Tab ${this.getActiveTabIndex() + 1}/${tabCount}` : "";
-      this.layout.setStatusText(` ${fileName}${modifiedMark}${langStr} ${cursorStr}${tabStr}`);
+      const content = this.editor.content;
+      const totalLines = content.split("\n").length;
+
+      this.statusBar.update({
+        filename: fileName,
+        cursorLine: state.cursorLine,
+        cursorColumn: state.cursorColumn,
+        language: state.language,
+        encoding: "UTF-8",
+        indentStyle: "4 spaces",
+        isModified: state.isModified,
+        totalLines,
+      });
     } else if (this.tabManager.tabCount > 0) {
       const activeTab = this.tabManager.getActiveTab();
       const title = activeTab?.title ?? "Untitled";
-      this.layout.setStatusText(` ${title}`);
+      this.statusBar.update({
+        filename: title,
+        cursorLine: state.cursorLine,
+        cursorColumn: state.cursorColumn,
+        language: null,
+        encoding: "UTF-8",
+        indentStyle: "4 spaces",
+        isModified: false,
+        totalLines: 0,
+      });
     } else {
-      this.layout.setStatusText(` xTerm — Ctrl+Q to quit`);
+      this.statusBar.update({
+        filename: null,
+        cursorLine: 0,
+        cursorColumn: 0,
+        language: null,
+        encoding: "UTF-8",
+        indentStyle: "4 spaces",
+        isModified: false,
+        totalLines: 0,
+      });
     }
   }
 
@@ -667,8 +772,10 @@ export class App {
   /** Quit the application cleanly */
   quit(): void {
     this._isRunning = false;
+    this.commandPalette.destroy();
     this.confirmDialog.destroy();
     this.searchDialog.destroy();
+    this.statusBar.destroy();
     this.editor.destroy();
     this.tabBar.destroy();
     this.fileTree.destroy();
@@ -714,6 +821,16 @@ export class App {
   /** Access the confirm dialog (for testing) */
   getConfirmDialog(): ConfirmDialog {
     return this.confirmDialog;
+  }
+
+  /** Access the status bar (for testing) */
+  getStatusBar(): StatusBar {
+    return this.statusBar;
+  }
+
+  /** Access the command palette (for testing) */
+  getCommandPalette(): CommandPalette {
+    return this.commandPalette;
   }
 
   /** Access the renderer (for testing) */

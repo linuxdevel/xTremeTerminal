@@ -223,7 +223,16 @@ export class Layout {
     this.containers.editorArea.add(renderable);
   }
 
-  /** Update status bar text */
+  /** Replace status bar placeholder with actual status bar component */
+  replaceStatusBarContent(renderable: BoxRenderable): void {
+    // Remove placeholder
+    this.containers.statusBar.remove(this.containers.statusBarPlaceholder.id);
+    this.containers.statusBarPlaceholder.destroy();
+    // Add the real component
+    this.containers.statusBar.add(renderable);
+  }
+
+  /** Update status bar text (placeholder mode only) */
   setStatusText(text: string): void {
     this.containers.statusBarPlaceholder.content = text;
   }
