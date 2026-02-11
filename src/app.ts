@@ -7,6 +7,7 @@ import { Layout } from "./components/layout.ts";
 import { FileTree } from "./components/file-tree.ts";
 import { Editor } from "./components/editor.ts";
 import { TabBar } from "./components/tab-bar.ts";
+import { SearchDialog } from "./components/search-dialog.ts";
 import { TabManager } from "./services/tab-manager.ts";
 import type { TabState } from "./services/tab-manager.ts";
 import {
@@ -20,6 +21,8 @@ import {
   KB_PREV_TAB,
   KB_CLOSE_TAB,
   KB_NEW_FILE,
+  KB_FIND,
+  KB_REPLACE,
 } from "./keybindings.ts";
 import { BG_PRIMARY } from "./theme.ts";
 import { fileService } from "./services/file-service.ts";
@@ -32,7 +35,7 @@ export interface AppOptions {
   rootDir?: string;
 }
 
-type FocusTarget = "tree" | "editor";
+type FocusTarget = "tree" | "editor" | "search";
 
 export class App {
   private renderer!: CliRenderer;
@@ -41,8 +44,10 @@ export class App {
   private editor!: Editor;
   private tabBar!: TabBar;
   private tabManager!: TabManager;
+  private searchDialog!: SearchDialog;
   private _isRunning = false;
   private _focus: FocusTarget = "tree";
+  private _previousFocus: FocusTarget = "editor";
 
   /** Create and start the application */
   async start(options: AppOptions = {}): Promise<void> {
@@ -78,6 +83,10 @@ export class App {
     this.editor = new Editor(this.renderer);
     this.layout.replaceEditorContent(this.editor.renderable);
 
+    // Create search dialog (overlay, added to root)
+    this.searchDialog = new SearchDialog(this.renderer);
+    this.layout.root.add(this.searchDialog.renderable);
+
     // Wire up tab manager events
     this.tabManager.onTabChange = (tab: TabState) => {
       this.switchToTab(tab);
@@ -112,6 +121,37 @@ export class App {
     this.editor.onSave = (path: string) => {
       const fileName = path.split("/").pop() ?? path;
       this.layout.setStatusText(` Saved: ${fileName}`);
+    };
+
+    // Wire up search dialog events
+    this.searchDialog.onSearchChange = (term: string) => {
+      this.performSearch(term);
+    };
+
+    this.searchDialog.onNavigate = (match, _index) => {
+      this.editor.goToOffset(match.start);
+      // Re-highlight with updated active index
+      const matches = this.editor.findAll(this.searchDialog.searchTerm);
+      this.editor.highlightSearchMatches(matches, this.searchDialog.currentMatchIndex);
+    };
+
+    this.searchDialog.onReplace = (match, replacement) => {
+      this.editor.replaceRange(match.start, match.end, replacement);
+      // Re-search after replacement
+      this.performSearch(this.searchDialog.searchTerm);
+    };
+
+    this.searchDialog.onReplaceAll = (term, replacement) => {
+      const count = this.editor.replaceAll(term, replacement);
+      this.layout.setStatusText(` Replaced ${count} occurrence${count !== 1 ? "s" : ""}`);
+      // Clear search after replace all
+      this.editor.clearSearchHighlights();
+      this.searchDialog.setMatches([]);
+    };
+
+    this.searchDialog.onClose = () => {
+      this.editor.clearSearchHighlights();
+      this.setFocus(this._previousFocus === "search" ? "editor" : this._previousFocus);
     };
 
     // Load the file tree
@@ -205,6 +245,43 @@ export class App {
   }
 
   private handleKeyPress(event: KeyEvent): void {
+    // If search dialog is visible, give it first priority
+    if (this.searchDialog.isVisible) {
+      // Escape closes dialog (handled by search dialog)
+      // Ctrl+F/H while search is open: toggle mode or close
+      if (matchesBinding(event, KB_FIND)) {
+        event.preventDefault();
+        if (this.searchDialog.mode === "find") {
+          this.searchDialog.hide();
+        } else {
+          this.searchDialog.show("find");
+        }
+        return;
+      }
+      if (matchesBinding(event, KB_REPLACE)) {
+        event.preventDefault();
+        if (this.searchDialog.mode === "replace") {
+          this.searchDialog.hide();
+        } else {
+          this.searchDialog.show("replace");
+        }
+        return;
+      }
+
+      // Quit still works from search dialog
+      if (matchesBinding(event, KB_QUIT)) {
+        event.preventDefault();
+        this.quit();
+        return;
+      }
+
+      // Delegate to search dialog
+      if (this.searchDialog.handleKeyPress(event)) {
+        event.preventDefault();
+      }
+      return;
+    }
+
     // Quit
     if (matchesBinding(event, KB_QUIT)) {
       event.preventDefault();
@@ -212,17 +289,36 @@ export class App {
       return;
     }
 
-    // Also handle Ctrl+C as quit
-    if (event.ctrl && event.name === "c") {
-      event.preventDefault();
-      this.quit();
-      return;
+    // Also handle Ctrl+C as quit (only when editor doesn't have selection)
+    if (event.ctrl && event.name === "c" && !event.shift && !event.meta) {
+      // If editor is focused and has a selection, let the editor handle it (copy)
+      if (this._focus === "editor" && this.editor.hasSelection) {
+        // Fall through to editor handler
+      } else {
+        event.preventDefault();
+        this.quit();
+        return;
+      }
     }
 
     // Save file
     if (matchesBinding(event, KB_SAVE)) {
       event.preventDefault();
       this.saveCurrentFile();
+      return;
+    }
+
+    // Find (Ctrl+F)
+    if (matchesBinding(event, KB_FIND)) {
+      event.preventDefault();
+      this.openSearch("find");
+      return;
+    }
+
+    // Find and Replace (Ctrl+H)
+    if (matchesBinding(event, KB_REPLACE)) {
+      event.preventDefault();
+      this.openSearch("replace");
       return;
     }
 
@@ -336,6 +432,44 @@ export class App {
     this.updateStatusBar();
   }
 
+  /** Open the search dialog */
+  private openSearch(mode: "find" | "replace"): void {
+    this._previousFocus = this._focus;
+    this.searchDialog.show(mode);
+    this.setFocus("search");
+
+    // If the editor has a selection, pre-fill the search term
+    if (this.editor.hasSelection) {
+      const selectedText = this.editor.getSelectedText();
+      if (selectedText && !selectedText.includes("\n")) {
+        // Single-line selection only — pre-fill search
+        // The search input will be populated via the InputRenderable
+      }
+    }
+  }
+
+  /** Perform search in the editor and update the search dialog */
+  private performSearch(term: string): void {
+    if (!term) {
+      this.editor.clearSearchHighlights();
+      this.searchDialog.setMatches([]);
+      return;
+    }
+
+    const matches = this.editor.findAll(term);
+    this.searchDialog.setMatches(matches);
+
+    if (matches.length > 0) {
+      // Highlight all matches
+      this.editor.highlightSearchMatches(matches, this.searchDialog.currentMatchIndex);
+      // Navigate to the first match
+      const firstMatch = matches[this.searchDialog.currentMatchIndex]!;
+      this.editor.goToOffset(firstMatch.start);
+    } else {
+      this.editor.clearSearchHighlights();
+    }
+  }
+
   /** Update the status bar with current editor state */
   private updateStatusBar(): void {
     const state = this.editor.state;
@@ -390,6 +524,7 @@ export class App {
   /** Quit the application cleanly */
   quit(): void {
     this._isRunning = false;
+    this.searchDialog.destroy();
     this.editor.destroy();
     this.tabBar.destroy();
     this.fileTree.destroy();
@@ -425,6 +560,11 @@ export class App {
   /** Access the tab bar (for testing) */
   getTabBar(): TabBar {
     return this.tabBar;
+  }
+
+  /** Access the search dialog (for testing) */
+  getSearchDialog(): SearchDialog {
+    return this.searchDialog;
   }
 
   /** Access the renderer (for testing) */

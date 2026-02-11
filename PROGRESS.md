@@ -8,9 +8,9 @@
 
 ---
 
-## Current Status: PHASE 5 COMPLETE
+## Current Status: PHASE 6 COMPLETE
 
-**Next action to take:** Begin Phase 6 (Advanced Editor: undo/redo, clipboard, search) implementation.
+**Next action to take:** Begin Phase 7 (File Operations: create, rename, delete) implementation.
 
 ---
 
@@ -24,7 +24,7 @@
 | Phase 3 | DONE | Text editor core | 2026-02-11 | 2026-02-11 |
 | Phase 4 | DONE | Syntax highlighting | 2026-02-11 | 2026-02-11 |
 | Phase 5 | DONE | Tab management | 2026-02-11 | 2026-02-11 |
-| Phase 6 | NOT STARTED | Advanced editor (undo/redo, clipboard, search) | - | - |
+| Phase 6 | DONE | Advanced editor (undo/redo, clipboard, search) | 2026-02-11 | 2026-02-11 |
 | Phase 7 | NOT STARTED | File operations (create/rename/delete) | - | - |
 | Phase 8 | NOT STARTED | Status bar & command palette | - | - |
 | Phase 9 | NOT STARTED | Polish & edge cases | - | - |
@@ -63,8 +63,8 @@
 | File | Status | Phase | Tests Written | Tests Passing |
 |------|--------|-------|---------------|---------------|
 | `src/index.ts` | DONE | 1 | NO | - |
-| `src/app.ts` | DONE | 1,2,3,5 | NO | - |
-| `src/theme.ts` | DONE | 1,4 | YES | YES |
+| `src/app.ts` | DONE | 1,2,3,5,6 | NO | - |
+| `src/theme.ts` | DONE | 1,4,6 | YES | YES |
 | `src/keybindings.ts` | DONE | 1 | YES | YES |
 
 ### Components
@@ -73,10 +73,10 @@
 |------|--------|-------|---------------|---------------|
 | `src/components/layout.ts` | DONE | 1,2,3,5 | YES | YES |
 | `src/components/file-tree.ts` | DONE | 2 | YES | YES |
-| `src/components/editor.ts` | DONE | 3,4,5 | YES | YES |
+| `src/components/editor.ts` | DONE | 3,4,5,6 | YES | YES |
 | `src/components/tab-bar.ts` | DONE | 5 | YES | YES |
 | `src/components/status-bar.ts` | NOT STARTED | 8 | NO | - |
-| `src/components/search-dialog.ts` | NOT STARTED | 6 | NO | - |
+| `src/components/search-dialog.ts` | DONE | 6 | YES | YES |
 | `src/components/confirm-dialog.ts` | NOT STARTED | 7 | NO | - |
 | `src/components/command-palette.ts` | NOT STARTED | 8 | NO | - |
 
@@ -86,8 +86,8 @@
 |------|--------|-------|---------------|---------------|
 | `src/services/file-service.ts` | DONE | 2 | YES | YES |
 | `src/services/tab-manager.ts` | DONE | 5 | YES | YES |
-| `src/services/history.ts` | NOT STARTED | 6 | NO | - |
-| `src/services/clipboard.ts` | NOT STARTED | 6 | NO | - |
+| `src/services/history.ts` | SKIPPED | 6 | NO | - |
+| `src/services/clipboard.ts` | DONE | 6 | YES | YES |
 
 ### Utilities
 
@@ -113,8 +113,8 @@
 |------|--------|---------|
 | `tests/unit/file-service.test.ts` | DONE | YES |
 | `tests/unit/tab-manager.test.ts` | DONE | YES |
-| `tests/unit/history.test.ts` | NOT STARTED | - |
-| `tests/unit/clipboard.test.ts` | NOT STARTED | - |
+| `tests/unit/history.test.ts` | SKIPPED | - |
+| `tests/unit/clipboard.test.ts` | DONE | YES |
 | `tests/unit/language-detect.test.ts` | DONE | YES |
 | `tests/unit/file-icons.test.ts` | DONE | YES |
 | `tests/unit/theme.test.ts` | DONE | YES |
@@ -128,7 +128,7 @@
 | `tests/component/editor.test.ts` | DONE | YES |
 | `tests/component/tab-bar.test.ts` | DONE | YES |
 | `tests/component/status-bar.test.ts` | NOT STARTED | - |
-| `tests/component/search-dialog.test.ts` | NOT STARTED | - |
+| `tests/component/search-dialog.test.ts` | DONE | YES |
 | `tests/component/confirm-dialog.test.ts` | NOT STARTED | - |
 | `tests/component/layout.test.ts` | DONE | YES |
 
@@ -246,6 +246,20 @@
   - Created tests/component/tab-bar.test.ts (7 tests covering rendering, re-render, cleanup)
   - All 241 tests passing
 - **Next steps:** Begin Phase 6 (Advanced Editor: undo/redo, clipboard, search)
+
+### Session 7 - 2026-02-11
+- **Goal:** Complete Phase 6 (Advanced Editor: undo/redo, clipboard, search & replace)
+- **Completed:**
+  - Created src/services/clipboard.ts (Clipboard class with copy, cut, paste, hasContent, clear)
+  - Created src/components/search-dialog.ts (SearchDialog overlay with find/replace modes, match navigation, keyboard handling)
+  - Updated src/components/editor.ts (added undo/redo via Ctrl+Z/Ctrl+Y using OpenTUI's built-in EditBuffer, clipboard operations via Ctrl+C/X/V, select all via Ctrl+A, search methods: findAll, highlightSearchMatches, clearSearchHighlights, goToOffset, replaceRange, replaceAll)
+  - Updated src/theme.ts (added search.match and search.match.active styles to SYNTAX_STYLE)
+  - Updated src/app.ts (integrated SearchDialog, wired search events, Ctrl+F find, Ctrl+H find+replace, search dialog keyboard priority, added getSearchDialog accessor, searchDialog.destroy in quit)
+  - Discovered OpenTUI TextareaRenderable has built-in undo/redo (editBuffer.canUndo/canRedo, textarea.undo/redo) and selection (hasSelection, getSelectedText, selectAll) — no custom History service needed
+  - Created tests/unit/clipboard.test.ts (14 tests)
+  - Created tests/component/search-dialog.test.ts (39 tests)
+  - All 294 tests passing
+- **Next steps:** Begin Phase 7 (File Operations: create, rename, delete)
 
 ---
 

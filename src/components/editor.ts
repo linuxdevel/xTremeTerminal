@@ -10,6 +10,7 @@ import {
 } from "@opentui/core";
 
 import { fileService } from "../services/file-service.ts";
+import { clipboard } from "../services/clipboard.ts";
 import { detectLanguage } from "../utils/language-detect.ts";
 import {
   BG_PRIMARY,
@@ -92,6 +93,10 @@ export class Editor {
   // Syntax highlighting state
   private _highlightTimer: ReturnType<typeof setTimeout> | null = null;
   private _highlightingEnabled = false;
+
+  // Search highlighting state
+  private _searchHighlightRef = 99; // hlRef for search match highlights
+  private _currentSearchHighlightRef = 100; // hlRef for current match highlight
 
   // ── Event Callbacks ─────────────────────────────────────────────
 
@@ -288,6 +293,57 @@ export class Editor {
 
   /** Handle a keyboard event. Returns true if consumed. */
   handleKeyPress(event: KeyEvent): boolean {
+    // Intercept undo/redo (Ctrl+Z / Ctrl+Y / Ctrl+Shift+Z)
+    if (event.ctrl && !event.meta && event.name === "z" && !event.shift) {
+      this.textarea.undo();
+      return true;
+    }
+    if (event.ctrl && !event.meta && event.name === "y" && !event.shift) {
+      this.textarea.redo();
+      return true;
+    }
+    if (event.ctrl && !event.meta && event.name === "z" && event.shift) {
+      this.textarea.redo();
+      return true;
+    }
+
+    // Intercept select all (Ctrl+A)
+    if (event.ctrl && !event.meta && event.name === "a" && !event.shift) {
+      this.textarea.selectAll();
+      return true;
+    }
+
+    // Intercept copy (Ctrl+C) — only when there is a selection
+    if (event.ctrl && !event.meta && event.name === "c" && !event.shift) {
+      if (this.textarea.hasSelection()) {
+        const text = this.textarea.getSelectedText();
+        clipboard.copy(text);
+        return true;
+      }
+      // If no selection, don't consume — let app handle Ctrl+C as quit
+      return false;
+    }
+
+    // Intercept cut (Ctrl+X)
+    if (event.ctrl && !event.meta && event.name === "x" && !event.shift) {
+      if (this.textarea.hasSelection()) {
+        const text = this.textarea.getSelectedText();
+        clipboard.cut(text);
+        this.textarea.editorView.deleteSelectedText();
+        return true;
+      }
+      return false;
+    }
+
+    // Intercept paste (Ctrl+V)
+    if (event.ctrl && !event.meta && event.name === "v" && !event.shift) {
+      if (clipboard.hasContent()) {
+        this.textarea.insertText(clipboard.paste());
+        return true;
+      }
+      return false;
+    }
+
     // The TextareaRenderable handles its own key events
     return this.textarea.handleKeyPress(event);
   }
@@ -324,6 +380,125 @@ export class Editor {
   /** Check if syntax highlighting is active */
   get highlightingEnabled(): boolean {
     return this._highlightingEnabled;
+  }
+
+  /** Check if undo is available */
+  get canUndo(): boolean {
+    return this.textarea.editBuffer.canUndo();
+  }
+
+  /** Check if redo is available */
+  get canRedo(): boolean {
+    return this.textarea.editBuffer.canRedo();
+  }
+
+  /** Check if text is currently selected */
+  get hasSelection(): boolean {
+    return this.textarea.hasSelection();
+  }
+
+  /** Get the currently selected text */
+  getSelectedText(): string {
+    return this.textarea.getSelectedText();
+  }
+
+  /** Find all occurrences of a search term in the content */
+  findAll(term: string): Array<{ start: number; end: number }> {
+    if (!term) return [];
+
+    const content = this.textarea.plainText;
+    const matches: Array<{ start: number; end: number }> = [];
+    const lowerTerm = term.toLowerCase();
+    const lowerContent = content.toLowerCase();
+    let pos = 0;
+
+    while (pos < lowerContent.length) {
+      const idx = lowerContent.indexOf(lowerTerm, pos);
+      if (idx === -1) break;
+      matches.push({ start: idx, end: idx + term.length });
+      pos = idx + 1;
+    }
+
+    return matches;
+  }
+
+  /** Apply search match highlights to the editor */
+  highlightSearchMatches(matches: Array<{ start: number; end: number }>, activeIndex: number): void {
+    // Remove previous search highlights
+    this.textarea.removeHighlightsByRef(this._searchHighlightRef);
+    this.textarea.removeHighlightsByRef(this._currentSearchHighlightRef);
+
+    const matchStyleId = SYNTAX_STYLE.resolveStyleId("search.match");
+    const activeStyleId = SYNTAX_STYLE.resolveStyleId("search.match.active");
+
+    for (let i = 0; i < matches.length; i++) {
+      const match = matches[i]!;
+      const isActive = i === activeIndex;
+      const styleId = isActive ? activeStyleId : matchStyleId;
+      const hlRef = isActive ? this._currentSearchHighlightRef : this._searchHighlightRef;
+
+      if (styleId !== null) {
+        this.textarea.addHighlightByCharRange({
+          start: match.start,
+          end: match.end,
+          styleId,
+          priority: 10, // Higher priority than syntax highlights
+          hlRef,
+        } as Highlight);
+      }
+    }
+  }
+
+  /** Clear all search highlights */
+  clearSearchHighlights(): void {
+    this.textarea.removeHighlightsByRef(this._searchHighlightRef);
+    this.textarea.removeHighlightsByRef(this._currentSearchHighlightRef);
+  }
+
+  /** Navigate to a specific character offset (scrolls the view) */
+  goToOffset(offset: number): void {
+    this.textarea.cursorOffset = offset;
+  }
+
+  /** Replace text at a specific range */
+  replaceRange(start: number, end: number, replacement: string): void {
+    const content = this.textarea.plainText;
+    const before = content.substring(0, start);
+    const after = content.substring(end);
+    const newContent = before + replacement + after;
+    this.textarea.replaceText(newContent);
+
+    // Position cursor after the replacement
+    this.textarea.cursorOffset = start + replacement.length;
+  }
+
+  /** Replace all occurrences of a term with a replacement */
+  replaceAll(term: string, replacement: string): number {
+    if (!term) return 0;
+
+    const content = this.textarea.plainText;
+    const lowerTerm = term.toLowerCase();
+    const lowerContent = content.toLowerCase();
+    let result = "";
+    let pos = 0;
+    let count = 0;
+
+    while (pos < lowerContent.length) {
+      const idx = lowerContent.indexOf(lowerTerm, pos);
+      if (idx === -1) {
+        result += content.substring(pos);
+        break;
+      }
+      result += content.substring(pos, idx) + replacement;
+      pos = idx + term.length;
+      count++;
+    }
+
+    if (count > 0) {
+      this.textarea.replaceText(result);
+    }
+
+    return count;
   }
 
   /** Swap the editor content for tab switching (no disk I/O). */

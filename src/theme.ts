@@ -145,6 +145,10 @@ export function createSyntaxStyle(): SyntaxStyle {
 
     // Default fallback
     "default": { fg: RGBA.fromHex(FG_PRIMARY) },
+
+    // Search match highlighting
+    "search.match": { bg: RGBA.fromHex(SEARCH_MATCH_BG), fg: RGBA.fromHex(BG_PRIMARY) },
+    "search.match.active": { bg: RGBA.fromHex(SEARCH_ACTIVE_MATCH_BG), fg: RGBA.fromHex(BG_PRIMARY), bold: true },
   });
 }
 

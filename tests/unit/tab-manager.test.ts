@@ -86,7 +86,7 @@ describe("TabManager", () => {
     });
 
     test("fires onTabClose callback", () => {
-      let closedId: string | null = null;
+      let closedId = "";
       tm.onTabClose = (tab) => { closedId = tab.id; };
       const tab = tm.openTab("/src/a.ts", "a");
       tm.closeTab(tab.id);
@@ -122,7 +122,7 @@ describe("TabManager", () => {
       const tab1 = tm.openTab("/src/a.ts", "a");
       const tab2 = tm.openTab("/src/b.ts", "b");
 
-      let changedId: string | null = null;
+      let changedId = "";
       tm.onTabChange = (tab) => { changedId = tab.id; };
 
       tm.switchToTab(tab1.id);
