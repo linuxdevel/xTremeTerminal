@@ -20,9 +20,6 @@ jobs:
             target: bun-linux-arm64
             artifact: xterminal-linux-arm64
           - os: macos-15
-            target: bun-darwin-x64-baseline
-            artifact: xterminal-darwin-x64
-          - os: macos-15
             target: bun-darwin-arm64
             artifact: xterminal-darwin-arm64
 

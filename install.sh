@@ -185,6 +185,13 @@ main() {
   detect_architecture
   info "Platform: ${PLATFORM}-${ARCH}"
 
+  # Intel Macs: no native build available, suggest Rosetta
+  if [ "$PLATFORM" = "darwin" ] && [ "$ARCH" = "x64" ]; then
+    warn "No native Intel Mac build is available."
+    info "Downloading the ARM64 binary instead (runs via Rosetta 2)."
+    ARCH="arm64"
+  fi
+
   get_latest_version
   download_binary
   install_binary
