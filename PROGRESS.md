@@ -8,7 +8,7 @@
 
 ---
 
-## Current Status: PHASE 10 COMPLETE
+## Current Status: PHASE 11 COMPLETE
 
 **Next action to take:** Manual testing and release preparation.
 
@@ -29,6 +29,7 @@
 | Phase 8 | DONE | Status bar & command palette | 2026-02-11 | 2026-02-11 |
 | Phase 9 | SKIPPED | Polish & edge cases | - | - |
 | Phase 10 | DONE | Install script & CI/CD workflows | 2026-02-11 | 2026-02-11 |
+| Phase 11 | DONE | Menu bar, help system, UX improvements | 2026-02-11 | 2026-02-11 |
 
 ---
 
@@ -55,6 +56,7 @@
 | `plans/phase-8-statusbar-commands.md` | DONE |
 | `plans/phase-9-polish.md` | DONE |
 | `plans/phase-10-install-ci.md` | DONE |
+| `plans/phase-11-fixes.md` | DONE |
 
 ---
 
@@ -65,22 +67,25 @@
 | File | Status | Phase | Tests Written | Tests Passing |
 |------|--------|-------|---------------|---------------|
 | `src/index.ts` | DONE | 1 | NO | - |
-| `src/app.ts` | DONE | 1,2,3,5,6,7,8 | NO | - |
-| `src/theme.ts` | DONE | 1,4,6 | YES | YES |
-| `src/keybindings.ts` | DONE | 1 | YES | YES |
+| `src/app.ts` | DONE | 1,2,3,5,6,7,8,11 | NO | - |
+| `src/theme.ts` | DONE | 1,4,6,11 | YES | YES |
+| `src/keybindings.ts` | DONE | 1,11 | YES | YES |
 
 ### Components
 
 | File | Status | Phase | Tests Written | Tests Passing |
 |------|--------|-------|---------------|---------------|
-| `src/components/layout.ts` | DONE | 1,2,3,5,8 | YES | YES |
+| `src/components/layout.ts` | DONE | 1,2,3,5,8,11 | YES | YES |
 | `src/components/file-tree.ts` | DONE | 2,7 | YES | YES |
-| `src/components/editor.ts` | DONE | 3,4,5,6 | YES | YES |
+| `src/components/editor.ts` | DONE | 3,4,5,6,11 | YES | YES |
 | `src/components/tab-bar.ts` | DONE | 5 | YES | YES |
 | `src/components/status-bar.ts` | DONE | 8 | YES | YES |
 | `src/components/search-dialog.ts` | DONE | 6 | YES | YES |
 | `src/components/confirm-dialog.ts` | DONE | 7 | YES | YES |
 | `src/components/command-palette.ts` | DONE | 8 | YES | YES |
+| `src/components/menu-bar.ts` | DONE | 11 | YES | YES |
+| `src/components/help-dialog.ts` | DONE | 11 | YES | YES |
+| `src/components/about-dialog.ts` | DONE | 11 | YES | YES |
 
 ### Services
 
@@ -134,6 +139,9 @@
 | `tests/component/search-dialog.test.ts` | DONE | YES |
 | `tests/component/confirm-dialog.test.ts` | DONE | YES |
 | `tests/component/layout.test.ts` | DONE | YES |
+| `tests/component/menu-bar.test.ts` | DONE | YES |
+| `tests/component/help-dialog.test.ts` | DONE | YES |
+| `tests/component/about-dialog.test.ts` | DONE | YES |
 
 ### Integration Tests
 
@@ -299,6 +307,26 @@
   - Updated README.md (added curl install instructions, supported platforms table, build from source section)
   - All 387 tests still passing
 - **Next steps:** Manual testing, then consider Phase 9 polish items
+
+### Session 11 - 2026-02-11
+- **Goal:** Complete Phase 11 (Bug fixes, menu bar, help system, UX improvements)
+- **Completed:**
+  - Created src/components/menu-bar.ts (MenuBar with state machine, horizontal bar, dropdown overlay, keyboard navigation)
+  - Created src/components/help-dialog.ts (HelpDialog with search and topics modes, doc file browsing)
+  - Created src/components/about-dialog.ts (AboutDialog showing version, license, GitHub link)
+  - Updated src/keybindings.ts (tab switching to Alt+Right/Left, replace to Ctrl+Shift+H, menu bar to F10)
+  - Updated src/app.ts (integrated menu bar, help dialog, about dialog, exit confirmation for unsaved changes, disabled Ctrl+C quit, dialog priority chain)
+  - Updated src/components/editor.ts (Ctrl+C with no selection consumes silently)
+  - Updated src/components/layout.ts (added menu bar row, replaceMenuBarContent method)
+  - Updated src/theme.ts (added MENU_BAR_HEIGHT constant)
+  - Created tests/component/menu-bar.test.ts (16 tests)
+  - Created tests/component/help-dialog.test.ts (12 tests)
+  - Created tests/component/about-dialog.test.ts (10 tests)
+  - Updated tests/unit/keybindings.test.ts and tests/component/layout.test.ts
+  - Updated docs/keyboard-shortcuts.md and docs/user-guide.md
+  - Keyboard shortcut audit: kept Alt+Right/Left for tabs (WSL-compatible), F10 for menu (standard TUI convention)
+  - All 430 tests passing
+- **Next steps:** Manual testing and release preparation
 
 ---
 
