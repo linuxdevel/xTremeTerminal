@@ -736,7 +736,7 @@ export class App {
       { id: "nav.focusEditor", label: "Focus Editor", shortcut: "Ctrl+G", category: "Navigation", action: () => this.setFocus("editor") },
       { id: "help.search", label: "Search Documentation", shortcut: null, category: "Help", action: () => this.openHelp("search") },
       { id: "help.topics", label: "Help Topics", shortcut: null, category: "Help", action: () => this.openHelp("topics") },
-      { id: "help.about", label: "About xTerm", shortcut: null, category: "Help", action: () => this.openAbout() },
+      { id: "help.about", label: "About xTremeTerminal", shortcut: null, category: "Help", action: () => this.openAbout() },
       { id: "app.quit", label: "Quit", shortcut: "Ctrl+Q", category: "Application", action: () => this.quit() },
     ];
 

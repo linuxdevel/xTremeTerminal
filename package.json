@@ -1,6 +1,6 @@
 {
-  "name": "xterm-editor",
-  "version": "0.1.0",
+  "name": "xtremeterminal",
+  "version": "1.0.2",
   "description": "Terminal-based text editor and file browser built with OpenTUI",
   "module": "src/index.ts",
   "type": "module",

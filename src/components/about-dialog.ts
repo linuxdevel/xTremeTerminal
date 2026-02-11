@@ -11,10 +11,12 @@ import {
   INFO,
 } from "../theme.ts";
 
+import { APP_VERSION, APP_AUTHOR, BUILD_DATE } from "../build-info.ts";
+
 // ── Constants ──────────────────────────────────────────────────────
 
 const DIALOG_WIDTH = 48;
-const DIALOG_HEIGHT = 12;
+const DIALOG_HEIGHT = 14;
 
 // ── AboutDialog Component ──────────────────────────────────────────
 
@@ -50,7 +52,7 @@ export class AboutDialog {
     // Title
     const title = new TextRenderable(renderer, {
       id: "about-title",
-      content: " xTerm",
+      content: " xTremeTerminal",
       fg: ACCENT,
       width: "100%",
       height: 1,
@@ -75,7 +77,7 @@ export class AboutDialog {
     // Version
     const version = new TextRenderable(renderer, {
       id: "about-version",
-      content: " Version: 1.0.0",
+      content: ` Version: ${APP_VERSION}`,
       fg: FG_PRIMARY,
       width: "100%",
       height: 1,
@@ -84,7 +86,16 @@ export class AboutDialog {
     // Author
     const author = new TextRenderable(renderer, {
       id: "about-author",
-      content: " Author: xTerm Developer",
+      content: ` Author: ${APP_AUTHOR}`,
+      fg: FG_PRIMARY,
+      width: "100%",
+      height: 1,
+    });
+
+    // Build date
+    const buildDate = new TextRenderable(renderer, {
+      id: "about-build-date",
+      content: ` Built: ${BUILD_DATE}`,
       fg: FG_PRIMARY,
       width: "100%",
       height: 1,
@@ -130,6 +141,7 @@ export class AboutDialog {
     this.container.add(spacer1);
     this.container.add(version);
     this.container.add(author);
+    this.container.add(buildDate);
     this.container.add(license);
     this.container.add(spacer2);
     this.container.add(projectLink);

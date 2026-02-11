@@ -157,7 +157,7 @@ export class Layout {
 
     const statusBarPlaceholder = new TextRenderable(ctx, {
       id: "status-bar-placeholder",
-      content: " xTerm — Ctrl+Q to quit",
+      content: " xTremeTerminal — Ctrl+Q to quit",
       fg: FG_PRIMARY,
       width: "100%",
     });

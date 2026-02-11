@@ -78,7 +78,7 @@ export class StatusBar {
     // Left section: filename + modified indicator
     this.leftSection = new TextRenderable(renderer, {
       id: "status-bar-left",
-      content: " xTerm",
+      content: " xTremeTerminal",
       fg: ACCENT,
       flexGrow: 1,
     });
@@ -169,7 +169,7 @@ export class StatusBar {
       this.leftSection.content = ` ${filename}${modifiedMark}`;
       this.leftSection.fg = isModified ? WARNING : ACCENT;
     } else {
-      this.leftSection.content = " xTerm";
+      this.leftSection.content = " xTremeTerminal";
       this.leftSection.fg = ACCENT;
     }
 

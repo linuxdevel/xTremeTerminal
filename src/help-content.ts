@@ -1,6 +1,6 @@
 // src/help-content.ts — Embedded documentation content for the compiled binary
 //
-// When xTerm is compiled into a standalone binary (bun build --compile),
+// When xTremeTerminal is compiled into a standalone binary (bun build --compile),
 // external doc files in docs/ are not bundled. This module embeds the
 // documentation content directly so the help system works in release builds.
 
@@ -16,7 +16,7 @@ export const EMBEDDED_DOCS: readonly EmbeddedDoc[] = [
     title: "Keyboard Shortcuts",
     content: `# Keyboard Shortcuts
 
-Complete reference of all keyboard shortcuts in xTerm.
+Complete reference of all keyboard shortcuts in xTremeTerminal.
 
 ---
 
@@ -26,7 +26,7 @@ These work regardless of which component is focused.
 
 | Shortcut | Action |
 |----------|--------|
-| Ctrl+Q | Exit xTerm (with unsaved changes confirmation) |
+| Ctrl+Q | Exit xTremeTerminal (with unsaved changes confirmation) |
 | Ctrl+B | Toggle sidebar visibility |
 | Ctrl+Shift+P | Open command palette |
 | F10 | Open menu bar |
@@ -180,13 +180,13 @@ These shortcuts work when the command palette is open.
     title: "Getting Started",
     content: `# Getting Started
 
-This guide walks you through installing and running xTerm for the first time.
+This guide walks you through installing and running xTremeTerminal for the first time.
 
 ## Prerequisites
 
 ### 1. Bun (required)
 
-xTerm runs on Bun, a fast JavaScript/TypeScript runtime.
+xTremeTerminal runs on Bun, a fast JavaScript/TypeScript runtime.
 
   # Install Bun
   curl -fsSL https://bun.sh/install | bash
@@ -200,10 +200,10 @@ Zig is needed to compile OpenTUI's native terminal rendering library.
 
 ### 3. Terminal
 
-xTerm works best with a modern terminal emulator that supports:
+xTremeTerminal works best with a modern terminal emulator that supports:
 - True color (24-bit color) - for the full Tokyo Night theme
 - 256 colors minimum - basic theme support
-- Alternate screen buffer - xTerm takes over the full terminal
+- Alternate screen buffer - xTremeTerminal takes over the full terminal
 
 Recommended terminals: Kitty, Alacritty, WezTerm, iTerm2, Windows Terminal, GNOME Terminal.
 
@@ -226,11 +226,11 @@ Recommended terminals: Kitty, Alacritty, WezTerm, iTerm2, Windows Terminal, GNOM
 
   bun run src/index.ts
 
-This opens xTerm with the file tree showing the current working directory.
+This opens xTremeTerminal with the file tree showing the current working directory.
 
 ## Your First Session
 
-When xTerm launches, you'll see a file tree on the left and the editor on the right.
+When xTremeTerminal launches, you'll see a file tree on the left and the editor on the right.
 
 ### Basic Workflow
 
@@ -257,11 +257,11 @@ When xTerm launches, you'll see a file tree on the left and the editor on the ri
     title: "User Guide",
     content: `# User Guide
 
-Complete usage manual for xTerm.
+Complete usage manual for xTremeTerminal.
 
 ## Interface Overview
 
-xTerm uses a VS Code-style layout with five main areas:
+xTremeTerminal uses a VS Code-style layout with five main areas:
 
 - Menu Bar (top) - File and Help menus, open with F10
 - Tab Bar - shows all open files
@@ -320,7 +320,7 @@ Ctrl+S saves the current file.
 
 ### Syntax Highlighting
 
-xTerm automatically detects the programming language based on the file
+xTremeTerminal automatically detects the programming language based on the file
 extension and applies syntax highlighting using Tree-sitter.
 
 ## Tabs
@@ -363,7 +363,7 @@ Press Ctrl+Q. If you have unsaved changes, a confirmation dialog will appear.`,
     title: "Configuration",
     content: `# Configuration
 
-xTerm uses a Tokyo Night inspired dark theme by default.
+xTremeTerminal uses a Tokyo Night inspired dark theme by default.
 
 ## Theme
 
@@ -425,7 +425,7 @@ Binary files are detected and cannot be edited.
     title: "Architecture",
     content: `# Architecture
 
-Technical architecture overview for xTerm.
+Technical architecture overview for xTremeTerminal.
 
 ## Design Principles
 

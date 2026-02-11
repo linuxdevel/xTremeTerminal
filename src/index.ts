@@ -1,4 +1,4 @@
-// src/index.ts — Entry point for xTerm
+// src/index.ts — Entry point for xTremeTerminal
 
 import { App } from "./app.ts";
 
@@ -10,6 +10,6 @@ try {
   });
 } catch (error) {
   // If the TUI fails to start, print to stderr and exit
-  console.error("Failed to start xTerm:", error);
+  console.error("Failed to start xTremeTerminal:", error);
   process.exit(1);
 }
