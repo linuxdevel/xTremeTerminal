@@ -8,7 +8,7 @@
 
 ---
 
-## Current Status: BUG FIXES COMPLETE (v1.0.0h)
+## Current Status: v1.0.2 RELEASED
 
 **Next action to take:** Ready for release. All 438 tests passing.
 
@@ -371,6 +371,21 @@
   - Updated external docs (keyboard-shortcuts.md, user-guide.md) with Ctrl+G binding and navigation shortcuts
   - All 438 tests passing
   - Tagged as v1.0.0h
+- **Next steps:** Release ready
+
+### Session 15 - 2026-02-11
+- **Goal:** Fix remaining bugs (welcome text, help dialog, Ctrl+V paste, line numbers)
+- **Completed:**
+  - Confirmed Ln/Col status bar fix works from source (Session 14 fix was correct; bug was stale binary)
+  - Fixed welcome screen shortcut text: Ctrl+1 -> Ctrl+G
+  - Fixed help dialog keyboard scrolling (Arrow Up/Down, PageUp/PageDown now scroll content)
+  - Added markdown formatting to help dialog (headers, tables, bullets, code blocks, separators)
+  - Added `.gitignore` entry for compiled binaries (`xterminal-*`)
+  - Tagged and pushed v1.0.1 with above fixes
+  - Fixed Ctrl+V double paste: overrode `textarea.handlePaste` with no-op to prevent terminal bracketed paste from interfering with internal clipboard
+  - Fixed line number gutter for 100+ line files: increased `LINE_NUMBER_MIN_WIDTH` from 4 to 5 and added `remeasureGutter()` after loadFile/swapContent
+  - All 438 tests passing
+  - Tagged as v1.0.2
 - **Next steps:** Release ready
 
 ---
