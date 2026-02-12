@@ -16,6 +16,7 @@ function createMockTab(overrides: Partial<TabState> = {}): TabState {
     scrollTop: 0,
     language: "typescript",
     content: "",
+    type: "editor",
     ...overrides,
   };
 }
