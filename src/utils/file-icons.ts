@@ -76,6 +76,10 @@ const EXTENSION_ICONS: Record<string, string> = {
   // Archives
   ".zip": "⊞",
   ".tar": "⊞",
+  ".tar.gz": "⊞",
+  ".tgz": "⊞",
+  ".tar.bz2": "⊞",
+  ".tar.xz": "⊞",
   ".gz": "⊞",
   ".7z": "⊞",
   ".rar": "⊞",

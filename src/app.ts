@@ -16,9 +16,12 @@ import { MenuBar } from "./components/menu-bar.ts";
 import type { Menu } from "./components/menu-bar.ts";
 import { HelpDialog } from "./components/help-dialog.ts";
 import { AboutDialog } from "./components/about-dialog.ts";
+import { ArchiveBrowser } from "./components/archive-browser.ts";
+import { PathPicker } from "./components/path-picker.ts";
 import { TabManager } from "./services/tab-manager.ts";
 import type { TabState } from "./services/tab-manager.ts";
 import type { FileEntry } from "./services/file-service.ts";
+import { archiveService } from "./services/archive-service.ts";
 import {
   matchesBinding,
   KB_TOGGLE_SIDEBAR,
@@ -46,13 +49,16 @@ export interface AppOptions {
   rootDir?: string;
 }
 
-type FocusTarget = "tree" | "editor" | "search" | "confirm" | "palette" | "menu" | "help" | "about";
+type FocusTarget = "tree" | "editor" | "search" | "confirm" | "palette" | "menu" | "help" | "about" | "archive" | "picker";
 
 export class App {
   private renderer!: CliRenderer;
+  private rootDir!: string;
   private layout!: Layout;
   private fileTree!: FileTree;
   private editor!: Editor;
+  private archiveBrowser!: ArchiveBrowser;
+  private pathPicker!: PathPicker;
   private tabBar!: TabBar;
   private statusBar!: StatusBar;
   private tabManager!: TabManager;
@@ -60,6 +66,7 @@ export class App {
   private confirmDialog!: ConfirmDialog;
   private commandPalette!: CommandPalette;
   private menuBar!: MenuBar;
+  private _pendingSwitchPromise: Promise<void> | null = null;
   private helpDialog!: HelpDialog;
   private aboutDialog!: AboutDialog;
   private _isRunning = false;
@@ -69,6 +76,7 @@ export class App {
   /** Create and start the application */
   async start(options: AppOptions = {}): Promise<void> {
     const rootDir = options.rootDir ?? process.cwd();
+    this.rootDir = rootDir;
 
     // Create or use provided renderer
     if (options.renderer) {
@@ -99,6 +107,13 @@ export class App {
     // Create and mount editor
     this.editor = new Editor(this.renderer);
     this.layout.replaceEditorContent(this.editor.renderable);
+
+    // Archive browser will be created on-demand when needed
+    // (not creating it here to avoid unnecessary initialization)
+
+    // Create path picker (overlay)
+    this.pathPicker = new PathPicker(this.renderer);
+    this.layout.root.add(this.pathPicker.renderable);
 
     // Create and mount status bar (replaces the status bar placeholder in layout)
     this.statusBar = new StatusBar(this.renderer);
@@ -224,6 +239,8 @@ export class App {
       this.statusBar.showMessage(`Saved: ${fileName}`, "success");
     };
 
+    // Archive browser events are wired when the browser is created (see wireArchiveBrowserEvents)
+
     // Wire up search dialog events
     this.searchDialog.onSearchChange = (term: string) => {
       this.performSearch(term);
@@ -278,6 +295,20 @@ export class App {
       return;
     }
 
+    // Check if it's an archive
+    if (archiveService.isArchive(filePath)) {
+      this.saveActiveTabState();
+      this.tabManager.openArchiveTab(filePath);
+      // openArchiveTab fires onTabChange -> switchToTab (fire-and-forget).
+      // We must await the pending switch so async archive loading finishes
+      // before this method returns.
+      if (this._pendingSwitchPromise) {
+        await this._pendingSwitchPromise;
+      }
+      this.updateStatusBar();
+      return;
+    }
+
     // Check if it's a text file first
     const isText = await fileService.isTextFile(filePath);
     if (!isText) {
@@ -304,30 +335,88 @@ export class App {
 
   /** Switch the editor to display a tab's content */
   private async switchToTab(tab: TabState): Promise<void> {
+    const promise = this._doSwitchToTab(tab);
+    this._pendingSwitchPromise = promise;
+    await promise;
+    if (this._pendingSwitchPromise === promise) {
+      this._pendingSwitchPromise = null;
+    }
+  }
+
+  private async _doSwitchToTab(tab: TabState): Promise<void> {
     // Save current editor state to the previously active tab
     // (the tab manager has already switched activeTabId)
 
-    await this.editor.swapContent(
-      tab.filePath,
-      tab.content,
-      tab.language,
-      tab.cursorLine,
-      tab.cursorColumn,
-    );
-
-    if (tab.isModified) {
-      // Re-apply the modified state after swap (swapContent resets it)
-      this.editor.onModifiedChange = null; // Temporarily suppress
-      // The modified state is tracked in the TabManager, not the editor
-    }
-
-    this.editor.onModifiedChange = (modified: boolean) => {
-      const activeTab = this.tabManager.getActiveTab();
-      if (activeTab) {
-        this.tabManager.markModified(activeTab.id, modified);
+    if (tab.type === "archive") {
+      // Remove and destroy old archive browser if present
+      if (this.archiveBrowser) {
+        try {
+          this.layout.editorArea.remove(this.archiveBrowser.renderable.id);
+        } catch {
+          // Ignore if not in layout
+        }
+        this.archiveBrowser.destroy();
+        this.archiveBrowser = null as any;
       }
-      this.updateStatusBar();
-    };
+      
+      // Create fresh archive browser
+      this.archiveBrowser = new ArchiveBrowser(this.renderer);
+      this.wireArchiveBrowserEvents();
+      
+      // Load archive content (populates entries but doesn't render yet)
+      this.archiveBrowser.setArchive(tab.filePath!);
+      await this.archiveBrowser.load();
+      
+      // Remove editor if present
+      try {
+        this.layout.editorArea.remove("editor-container");
+      } catch {
+        // Ignore if not present
+      }
+      
+      // Add archive browser to layout, then render items
+      this.layout.editorArea.add(this.archiveBrowser.renderable);
+      this.archiveBrowser.renderItems();
+      
+      this.setFocus("archive");
+    } else {
+      // Remove archive browser if present, add editor
+      if (this.archiveBrowser) {
+        this.layout.editorArea.remove(this.archiveBrowser.renderable.id);
+        // Don't destroy yet - might switch back
+      }
+      
+      try {
+        this.layout.editorArea.remove("editor-container");
+      } catch {
+        // Ignore if already removed
+      }
+      this.layout.editorArea.add(this.editor.renderable);
+
+      await this.editor.swapContent(
+        tab.filePath,
+        tab.content,
+        tab.language,
+        tab.cursorLine,
+        tab.cursorColumn,
+      );
+
+      if (tab.isModified) {
+        // Re-apply the modified state after swap (swapContent resets it)
+        this.editor.onModifiedChange = null; // Temporarily suppress
+        // The modified state is tracked in the TabManager, not the editor
+      }
+
+      this.editor.onModifiedChange = (modified: boolean) => {
+        const activeTab = this.tabManager.getActiveTab();
+        if (activeTab) {
+          this.tabManager.markModified(activeTab.id, modified);
+        }
+        this.updateStatusBar();
+      };
+      
+      this.setFocus("editor");
+    }
 
     this.updateStatusBar();
   }
@@ -346,6 +435,14 @@ export class App {
   }
 
   private handleKeyPress(event: KeyEvent): void {
+    // If path picker is visible
+    if (this.pathPicker.isVisible) {
+      if (this.pathPicker.handleKeyPress(event)) {
+        event.preventDefault();
+      }
+      return;
+    }
+
     // If confirm dialog is visible, give it highest priority
     if (this.confirmDialog.isVisible) {
       if (this.confirmDialog.handleKeyPress(event)) {
@@ -551,6 +648,10 @@ export class App {
       if (this.fileTree.handleKeyPress(event)) {
         event.preventDefault();
       }
+    } else if (this._focus === "archive") {
+      if (this.archiveBrowser.handleKeyPress(event)) {
+        event.preventDefault();
+      }
     } else if (this._focus === "editor") {
       if (this.editor.handleKeyPress(event)) {
         event.preventDefault();
@@ -743,6 +844,69 @@ export class App {
     this.commandPalette.registerCommands(commands);
   }
 
+  /** Wire up archive browser event handlers */
+  private wireArchiveBrowserEvents(): void {
+    this.archiveBrowser.onFileSelect = async (entryPath: string) => {
+      const activeTab = this.tabManager.getActiveTab();
+      if (!activeTab || !activeTab.filePath) return;
+
+      const content = await archiveService.readFile(activeTab.filePath, entryPath);
+      if (content !== null) {
+        const untitled = this.tabManager.newUntitledTab();
+        this.tabManager.updateTabContent(untitled.id, content);
+        const language = detectLanguage(entryPath);
+        this.tabManager.renameTab(untitled.id, entryPath);
+      } else {
+        this.statusBar.showMessage("Failed to read file from archive", "error");
+      }
+    };
+
+    this.archiveBrowser.onExtract = (entry) => {
+      const activeTab = this.tabManager.getActiveTab();
+      if (!activeTab || !activeTab.filePath) return;
+
+      const entryName = entry.path.split("/").filter(Boolean).pop() || entry.path;
+      this.pathPicker.show({
+        title: `Extract ${entryName} to...`,
+        initialPath: this.rootDir,
+        onSelect: async (targetDir) => {
+          const success = await archiveService.extract(activeTab.filePath!, entry.path, targetDir);
+          if (success) {
+            this.statusBar.showMessage("Extracted successfully", "success");
+            await this.fileTree.load();
+          } else {
+            this.statusBar.showMessage("Extraction failed", "error");
+          }
+          this.setFocus("archive");
+        },
+        onCancel: () => this.setFocus("archive"),
+      });
+      this.setFocus("picker");
+    };
+
+    this.archiveBrowser.onExtractAll = () => {
+      const activeTab = this.tabManager.getActiveTab();
+      if (!activeTab || !activeTab.filePath) return;
+
+      this.pathPicker.show({
+        title: "Extract all to...",
+        initialPath: this.rootDir,
+        onSelect: async (targetDir) => {
+          const success = await archiveService.extract(activeTab.filePath!, null, targetDir);
+          if (success) {
+            this.statusBar.showMessage("Extracted all successfully", "success");
+            await this.fileTree.load();
+          } else {
+            this.statusBar.showMessage("Extraction failed", "error");
+          }
+          this.setFocus("archive");
+        },
+        onCancel: () => this.setFocus("archive"),
+      });
+      this.setFocus("picker");
+    };
+  }
+
   /** Open the command palette */
   private openCommandPalette(): void {
     this._previousFocus = this._focus;
@@ -811,6 +975,22 @@ export class App {
 
   /** Update the status bar with current editor state */
   private updateStatusBar(): void {
+    const activeTab = this.tabManager.getActiveTab();
+    
+    if (activeTab && activeTab.type === "archive") {
+      this.statusBar.update({
+        filename: activeTab.title,
+        cursorLine: 0,
+        cursorColumn: 0,
+        language: "Archive",
+        encoding: "Binary",
+        indentStyle: "",
+        isModified: false,
+        totalLines: 0,
+      });
+      return;
+    }
+
     const state = this.editor.state;
 
     if (state.filePath) {
@@ -878,6 +1058,9 @@ export class App {
     } else {
       this.editor.blur();
     }
+
+    // Archive browser doesn't have an explicit focus() yet but we can add one if needed
+    // or just handle it via delegation in handleKeyPress which we already do.
   }
 
   /** Get the current focus target */
@@ -910,6 +1093,8 @@ export class App {
     this._isRunning = false;
     this.aboutDialog.destroy();
     this.helpDialog.destroy();
+    this.pathPicker.destroy();
+    if (this.archiveBrowser) this.archiveBrowser.destroy();
     this.menuBar.destroy();
     this.commandPalette.destroy();
     this.confirmDialog.destroy();

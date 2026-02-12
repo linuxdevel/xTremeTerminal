@@ -8,9 +8,9 @@
 
 ---
 
-## Current Status: v1.0.3 RELEASED
+## Current Status: Phase 12 COMPLETE
 
-**Next action to take:** All features complete. All 438 tests passing. Ready for new feature work or bug fixes.
+**Next action to take:** All 471 tests passing. Phase 12 (Archive Browser) complete. Ready for release tagging or new feature work.
 
 ---
 
@@ -30,6 +30,7 @@
 | Phase 9 | SKIPPED | Polish & edge cases | - | - |
 | Phase 10 | DONE | Install script & CI/CD workflows | 2026-02-11 | 2026-02-11 |
 | Phase 11 | DONE | Menu bar, help system, UX improvements | 2026-02-11 | 2026-02-11 |
+| Phase 12 | DONE | Archive browser (.tar, .tar.gz, .tgz) | 2026-02-12 | 2026-02-12 |
 
 ---
 
@@ -67,7 +68,7 @@
 | File | Status | Phase | Tests Written | Tests Passing |
 |------|--------|-------|---------------|---------------|
 | `src/index.ts` | DONE | 1 | NO | - |
-| `src/app.ts` | DONE | 1,2,3,5,6,7,8,11,14 | NO | - |
+| `src/app.ts` | DONE | 1,2,3,5,6,7,8,11,12,14 | NO | - |
 | `src/theme.ts` | DONE | 1,4,6,11 | YES | YES |
 | `src/keybindings.ts` | DONE | 1,11,14 | YES | YES |
 
@@ -89,6 +90,8 @@
 | `src/components/menu-bar.ts` | DONE | 11 | YES | YES |
 | `src/components/help-dialog.ts` | DONE | 11,14 | YES | YES |
 | `src/components/about-dialog.ts` | DONE | 11 | YES | YES |
+| `src/components/archive-browser.ts` | DONE | 12 | YES | YES |
+| `src/components/path-picker.ts` | DONE | 12 | YES | YES |
 
 ### Services
 
@@ -98,6 +101,7 @@
 | `src/services/tab-manager.ts` | DONE | 5 | YES | YES |
 | `src/services/history.ts` | SKIPPED | 6 | NO | - |
 | `src/services/clipboard.ts` | DONE | 6 | YES | YES |
+| `src/services/archive-service.ts` | DONE | 12 | YES | YES |
 
 ### Utilities
 
@@ -129,6 +133,7 @@
 | `tests/unit/file-icons.test.ts` | DONE | YES |
 | `tests/unit/theme.test.ts` | DONE | YES |
 | `tests/unit/keybindings.test.ts` | DONE | YES |
+| `tests/unit/archive-service.test.ts` | DONE | YES |
 
 ### Component Tests
 
@@ -145,6 +150,7 @@
 | `tests/component/menu-bar.test.ts` | DONE | YES |
 | `tests/component/help-dialog.test.ts` | DONE | YES |
 | `tests/component/about-dialog.test.ts` | DONE | YES |
+| `tests/component/archive-browser.test.ts` | DONE | YES |
 
 ### Integration Tests
 
@@ -157,6 +163,8 @@
 | `tests/integration/undo-redo.test.ts` | NOT STARTED | - |
 | `tests/integration/large-file.test.ts` | NOT STARTED | - |
 | `tests/integration/sidebar-toggle.test.ts` | NOT STARTED | - |
+| `tests/integration/archive-browser.test.ts` | DONE | YES |
+| `tests/integration/path-picker.test.ts` | DONE | YES |
 
 ---
 
@@ -405,6 +413,26 @@
   - All 438 tests passing
   - Tagged as v1.0.3
 - **Next steps:** All features complete. Ready for new feature work or bug fixes.
+
+### Session 17 - 2026-02-12
+- **Goal:** Complete Phase 12 (Archive Browser)
+- **Completed:**
+  - Created `src/services/archive-service.ts` — ArchiveService with `listEntries()`, `readFile()`, `extract()`, `isArchive()` using Bun.Archive API
+  - Created `src/components/archive-browser.ts` — Tree view component for browsing archive contents with keyboard navigation
+  - Created `src/components/path-picker.ts` — Directory picker dialog for choosing extraction targets
+  - Updated `src/app.ts` — Integrated archive browser with tab system, async race condition fix (`_pendingSwitchPromise` pattern), on-demand archive browser creation
+  - Updated `src/services/tab-manager.ts` — Added `openArchiveTab()` method, `type: "archive"` tab support
+  - Fixed Yoga layout crashes: identified async race condition between `switchToTab` and `forceQuit`; archive browser now uses unique random IDs
+  - Fixed PathPicker Yoga crash: added unique IDs to dynamically created TextRenderables, fixed test to await async `show()` method
+  - Created `tests/unit/archive-service.test.ts` — 8 tests for archive I/O
+  - Created `tests/component/archive-browser.test.ts` — 21 tests for keyboard navigation, callbacks, rendering, lifecycle
+  - Created `tests/integration/archive-browser.test.ts` — 2 integration tests for opening archives
+  - Fixed `tests/integration/path-picker.test.ts` — 2 tests (was crashing due to unawaited async `show()`)
+  - Cleaned up temp/debug files: `test-archive-render.ts`, `test-archive.ts`, `test.tar.gz`, `test.tar.bz2`, `bz2.txt`, `tests/repro.test.ts`
+  - Updated `docs/keyboard-shortcuts.md` with archive browser shortcuts
+  - Updated `docs/user-guide.md` with archive browser section (viewing, extracting, path picker, supported formats)
+  - Updated `PROGRESS.md` with Phase 12 status and new files
+- **Next steps:** Run full test suite, verify all tests pass, tag release
 
 ---
 

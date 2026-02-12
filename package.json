@@ -1,6 +1,6 @@
 {
   "name": "xtremeterminal",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "description": "Terminal-based text editor and file browser built with OpenTUI",
   "module": "src/index.ts",
   "type": "module",

@@ -14,6 +14,7 @@ export interface TabState {
   scrollTop: number;
   language: string | null;
   content: string;
+  type: "editor" | "archive";
 }
 
 // ── TabManager ─────────────────────────────────────────────────────
@@ -56,6 +57,35 @@ export class TabManager {
       scrollTop: 0,
       language,
       content,
+      type: "editor",
+    };
+
+    this.tabs.push(tab);
+    this.activeTabId = tab.id;
+    this.onTabListChange?.(this.tabs);
+    this.onTabChange?.(tab);
+    return tab;
+  }
+
+  /** Open a tab for an archive. If a tab already exists for this path, switch to it. */
+  openArchiveTab(filePath: string): TabState {
+    const existing = this.findTabByPath(filePath);
+    if (existing) {
+      this.switchToTab(existing.id);
+      return existing;
+    }
+
+    const tab: TabState = {
+      id: generateTabId(),
+      filePath,
+      title: path.basename(filePath),
+      isModified: false,
+      cursorLine: 0,
+      cursorColumn: 0,
+      scrollTop: 0,
+      language: null,
+      content: "",
+      type: "archive",
     };
 
     this.tabs.push(tab);
@@ -145,6 +175,7 @@ export class TabManager {
       scrollTop: 0,
       language: null,
       content: "",
+      type: "editor",
     };
 
     this.tabs.push(tab);

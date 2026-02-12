@@ -8,6 +8,7 @@ This is the complete usage manual for xTremeTerminal, covering all features from
 - [File Tree Browser](#file-tree-browser)
 - [Text Editor](#text-editor)
 - [Tabs](#tabs)
+- [Archive Browser](#archive-browser)
 - [Search and Replace](#search-and-replace)
 - [File Operations](#file-operations)
 - [Menu Bar](#menu-bar)
@@ -212,6 +213,69 @@ Save changes to filename.ts? [Y/n/Cancel]
 | Key | Action |
 |-----|--------|
 | Ctrl+N | Create a new untitled tab |
+
+---
+
+## Archive Browser
+
+xTremeTerminal can browse the contents of archive files (`.tar`, `.tar.gz`, `.tgz`) directly without extracting them first.
+
+### Opening Archives
+
+Select an archive file in the file tree and press **Enter**. Instead of opening in the text editor, a dedicated archive browser opens in a new tab showing the archive's contents.
+
+### Navigation
+
+| Key | Action |
+|-----|--------|
+| Up / Down | Move selection up / down through archive entries |
+| Enter | View selected file (opens content in a new tab) |
+| e | Extract the selected entry to a chosen directory |
+| Ctrl+E | Extract the entire archive to a chosen directory |
+
+### Viewing Files
+
+Press **Enter** on a file entry to view its content. The file opens in a new untitled tab with the content read directly from the archive. Directory entries are displayed but cannot be "opened".
+
+### Extracting Files
+
+- Press **e** on any entry to extract it. A path picker dialog appears where you can choose the destination directory.
+- Press **Ctrl+E** to extract the entire archive. The same path picker dialog lets you choose where to extract all files.
+
+After extraction, the file tree refreshes to show the newly extracted files.
+
+### Path Picker
+
+When extracting, a directory picker dialog appears:
+
+```
+┌───────────────────────────────────────────────┐
+│ Extract to...                                  │
+│ /home/user/projects/myproject                  │
+│ > ..                                           │
+│   src/                                         │
+│   docs/                                        │
+│   tests/                                       │
+│ [Select Here]  [Cancel]                        │
+└───────────────────────────────────────────────┘
+```
+
+- Use **Up / Down** to navigate directories
+- Press **Enter** to descend into a directory
+- Press **Tab** to switch between the list and buttons
+- Select "Select Here" to extract to the current directory
+- Press **Escape** or select "Cancel" to abort
+
+### Supported Formats
+
+| Format | Extensions |
+|--------|-----------|
+| tar | `.tar` |
+| gzip-compressed tar | `.tar.gz`, `.tgz` |
+
+### Status Bar
+
+When viewing an archive, the status bar shows the archive filename, and the language is displayed as "Archive".
 
 ---
 

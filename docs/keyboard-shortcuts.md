@@ -121,6 +121,20 @@ Note: Ctrl+C only copies when text is selected; it does not exit the application
 
 ---
 
+## Archive Browser
+
+These shortcuts work when an archive file is open in the archive browser.
+
+| Shortcut | Action |
+|----------|--------|
+| Up / Down | Move selection up / down |
+| Enter | View selected file (opens in a new tab as read-only) |
+| e | Extract selected entry to a chosen directory |
+| Ctrl+E | Extract entire archive to a chosen directory |
+| Left / Right | Reserved (no-op, for future expand/collapse) |
+
+---
+
 ## File Tree
 
 These shortcuts work when the file tree is focused.
