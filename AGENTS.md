@@ -37,12 +37,15 @@ bun install                         # Install deps
 bun run src/index.ts                # Launch the editor
 
 # Test
-bun test                            # All tests (438 passing)
+bun test                            # All tests
 bun test tests/unit                 # Unit tests only
 bun test tests/component            # Component tests only
 bun test tests/integration          # Integration tests only
 bun test --coverage                 # With coverage
 bun test --watch                    # Watch mode
+
+# Generate embedded help docs (run after changing docs/*.md)
+bun run scripts/generate-help-content.ts
 ```
 
 ## Source Layout (abbreviated)
@@ -72,21 +75,22 @@ tests/
 
 | When you need…                                 | Read this                                |
 |------------------------------------------------|------------------------------------------|
-| Full directory tree, arch principles, OpenTUI  | `docs/agent/10-architecture.md`          |
+| Directory tree, arch principles, OpenTUI, footguns | `docs/agent/10-architecture.md`      |
 | TypeScript style, naming, imports, errors      | `docs/agent/20-coding-conventions.md`    |
 | Test runner, categories, conventions, helpers  | `docs/agent/30-testing.md`               |
 | Color palette, theme tokens, UI constants      | `docs/agent/40-theme-and-ui.md`          |
-| Doc index + decision tree                      | `docs/agent/00-index.md`                 |
 | Current dev status, session history            | `PROGRESS.md`                            |
 | Phase-specific implementation plan             | `plans/phase-N-*.md`                     |
 | Deep architecture rationale, data flow         | `docs/architecture.md`                   |
 | User-facing docs (shortcuts, config, guide)    | `docs/*.md`                              |
+| Archived session logs (sessions 1-16)          | `docs/agent/session-history.md`          |
 
 ## Key Footguns
 
-- **Zig must be installed** for OpenTUI native build.
-- **Alternate screen buffer:** The app takes over the terminal. Test headlessly.
-- **Cursor position:** `editorView.getCursor()` gives the correct position after up/down movement; `editBuffer.getCursorPosition()` can be stale. See PROGRESS.md Session 13-14.
-- **Tree-sitter parsers bundled:** Only javascript, typescript, markdown, markdown_inline, zig. Other languages fall back gracefully.
-- **Compiled binary doesn't bundle external files.** Help docs are embedded in `src/help-content.ts`.
-- **Ctrl+C/V:** Some terminals intercept these at the OS level. The code is correct; the issue is terminal behavior.
+> Full list with details in `docs/agent/10-architecture.md` § "Known Footguns".
+
+- **Zig required** for OpenTUI native build.
+- **No stdout** — the TUI owns the terminal.
+- **`editorView.getCursor()`** for correct cursor position (not `editBuffer.getCursorPosition()`).
+- **Compiled binary** doesn't bundle external files; docs are embedded via `src/help-content.ts`.
+- **Dynamic renderables** need unique IDs to avoid Yoga crashes after destroy/recreate.

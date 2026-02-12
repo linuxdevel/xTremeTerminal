@@ -9,7 +9,7 @@
 ## Running Tests
 
 ```bash
-bun test                      # All tests (438 currently passing)
+bun test                      # All tests (run to check current count)
 bun test tests/unit           # Unit tests only
 bun test tests/component      # Component tests only
 bun test tests/integration    # Integration tests only
